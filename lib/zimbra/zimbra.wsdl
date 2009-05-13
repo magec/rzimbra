@@ -1,0 +1,476 @@
+<?xml version="1.0"?>
+<definitions xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" 
+	     xmlns:tns="urn:zimbraAdmin"
+	     xmlns:zmns="urn:zimbraMail"
+	     xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+	     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	     xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" 
+	     xmlns:si="http://soapinterop.org/xsd" 
+	     xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" 
+	     xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" 
+	     xmlns="http://schemas.xmlsoap.org/wsdl/" 
+	     targetNamespace="urn:zimbraAdmin">
+  
+  <types>
+    
+    <schema targetNamespace="urn:zimbra" xmlns="http://www.w3.org/2001/XMLSchema">
+      <element name="sessionId" type="xsd:string">
+	<complexType>
+          <simpleContent>
+            <extension base="xsd:string">
+              <attribute name="type" type="xsd:string"/>
+              <attribute name="id" type="xsd:string"/>
+            </extension>
+          </simpleContent>
+	</complexType>
+      </element>
+      
+      <element name="context" type="xsd:string">
+	<complexType>
+          <sequence>
+            <element name="authToken" type="xsd:string"/>
+            <element ref="zns:sessionId"/>
+          </sequence>
+	</complexType>
+      </element>      
+    </schema>
+    
+    <schema targetNamespace="urn:zimbraAdmin" xmlns="http://www.w3.org/2001/XMLSchema">    
+
+      <element name="a" type="xsd:string">
+	<attribute name="n" type="xsd:string" />
+      </element>
+      
+      <element name="AuthRequest">
+	<complexType>
+          <sequence>
+            <element name="name" type="xsd:string"/>
+            <element name="password" type="xsd:string"/>
+          </sequence>
+	</complexType>
+      </element>
+      
+      <element name="AuthResponse">
+	<complexType>
+          <sequence>
+            <element name="authToken" type="xsd:string"/>
+            <element name="lifetime" type="xsd:string"/>
+            <element ref="tns:a" maxOccurs="unbounded"/>
+            <element ref="tns:sessionId"/>
+          </sequence>
+	</complexType>
+      </element>
+
+      <element name="CreateAccountRequest">
+	<complexType>
+	  <sequence>
+	    <element name="name" type="xsd:string" />
+	    <element name="password" type="xsd:string" />
+	    <element ref="tns:a" />
+	  </sequence>
+	</complexType>
+      </element>
+
+      <element name="account">
+	<attribute name="name" type="xsd:string" />
+	<attribute name="id=" type="xsd:string" />
+	<complexType>
+	  <sequence>
+	    <element ref="tns:a" />
+	  </sequence>
+	</complexType>
+      </element>
+
+      <element name="CreateAccountResponse">
+	<complexType>
+	  <sequence>
+	    <element ref="tns:account" />
+	  </sequence>
+	</complexType>
+      </element>
+
+      <complexType name="account_request_type">
+	<attribute name="by" type="xsd:string" />
+      </complexType>
+
+      <element name="GetAccountRequest">
+	<attribute name="applyCos" type="xsd:string" />
+	<complexType>
+	  <sequence>
+	    <element name="account" type="tns:account_request_type" />
+	  </sequence>
+	</complexType>
+      </element>
+
+      <element name="GetAccountResponse">
+	<complexType>
+	  <sequence>
+	    <element ref="tns:account" />
+	  </sequence>
+	</complexType>
+      </element>
+
+      <element name="DeleteAccountResponse" type="xsd:string" />
+      <element name="DeleteAccountRequest">
+	<complexType>
+	  <sequence>
+	    <element name="id" type="xsd:string" />
+	  </sequence>
+	</complexType>
+      </element>
+
+      <element name="ModifyAccountRequest">
+	<complexType>
+	  <sequence>
+	    <element name="id" type="xsd:string" />
+	    <element ref="tns:a" />
+	  </sequence>
+	</complexType>
+      </element>
+
+      <element name="ModifyAccountResponse">
+	<complexType>
+	  <sequence>
+	    <element ref="tns:account" />
+	  </sequence>
+	</complexType>
+      </element>
+      
+    </schema>
+
+    <schema targetNamespace="urn:zimbraMail" xmlns="http://www.w3.org/2001/XMLSchema">    
+      
+      <complexType name="folder" >
+	<attribute name="l"    type="xsd:string" />
+	<attribute name="path" type="xsd:string" />
+	<attribute name="name" type="xsd:string" />
+	<attribute name="view" type="xsd:string" />
+	<attribute name="n"    type="xsd:string" />
+	<attribute name="s"    type="xsd:string" />
+	<attribute name="rev"  type="xsd:string" />
+	<sequence>
+	  <element name="folder" type="zmns:folder" minOccurs="0" />
+	</sequence>
+      </complexType>
+
+      <element name="GetFolderRequest">
+	<complexType>
+	  <sequence>
+	    <element name="folder" type="zmns:folder" />
+	  </sequence>
+	</complexType>
+      </element>
+      
+      <element name="GetFolderResponse">
+	<complexType>
+	  <sequence>
+	    <element name="folder" type="zmns:folder" />
+	  </sequence>
+	</complexType>
+      </element>
+
+      <element name="SearchRequest" >
+	<complexType>
+	  <attribute name="limit" type="xsd:string" />
+	  <attribute name="offset" type="xsd:string" />
+	  <attribute name="sortBy" type="xsd:string" />
+	  <attribute name="groupBy" type="xsd:string" />
+          <attribute name="types" type="xsd:string" />
+	  <attribute name="recip" type="xsd:string" />
+	  <attribute name="fetch" type="xsd:string" />
+	  <attribute name="read" type="xsd:string" />
+          <attribute name="max" type="xsd:string" />
+	  <attribute name="html" type="xsd:string" />
+	  <attribute name="neuter" type="xsd:string" />
+	  <attribute name="field" type="xsd:string" />
+	  <attribute name="calExpandInstStart" type="xsd:string" />
+	  <attribute name="calExpandInstEnd" type="xsd:string" />
+	  <sequence>
+	    <element name="query" type="xsd:string" />
+	  </sequence>
+	</complexType>
+      </element>
+
+      <element name="SearchConvRequest" >
+	<complexType>
+	  <attribute name="cid" type="xsd:string" />
+	  <attribute name="limit" type="xsd:string" />
+	  <attribute name="offset" type="xsd:string" />
+	  <attribute name="sortBy" type="xsd:string" />
+          <attribute name="types" type="xsd:string" />
+	  <attribute name="nest" type="xsd:string" />
+	  <attribute name="fetch" type="xsd:string" />
+          <attribute name="max" type="xsd:string" />
+	  <attribute name="html" type="xsd:string" />
+	  <attribute name="neuter" type="xsd:string" />
+	  <attribute name="read" type="xsd:string" />
+	  <sequence>
+	    <element name="query" type="xsd:string" />
+	  </sequence>
+	</complexType>
+      </element>
+
+
+      <element name="m">
+	<complexType>
+	  <sequence>
+	    <element name="content" type="xsd:string" minOccurs="0" />
+	    <element name="e" type="xsd:string" minOccurs="0" />
+	    <element name="su" type="xsd:string" />
+	    <element name="fr" type="xsd:string" />
+	    <element name="mid" type="xsd:string" />
+	  </sequence>
+	</complexType>
+      </element>    
+      
+      <element name="e">
+	<complexType>
+	  <attribute name="t" type="xsd:string" />
+	  <attribute name="p" type="xsd:string" />
+	  <attribute name="a" type="xsd:string" />
+	  <attribute name="d" type="xsd:string" />
+	  <sequence>
+	    <element name="content" type="xsd:string" />
+	  </sequence>
+	</complexType>
+      </element>
+
+      <element name="c" >
+	<complexType>
+	  <sequence>
+	    <element ref="tns:e" maxOccurs="unbounded" />
+	    <element name="su" type="xsd:string" />
+	    <element name="fr" type="xsd:string" />
+	    <element ref="tns:m" maxOccurs="unbounded" />
+	  </sequence>
+	</complexType>
+      </element>
+
+      <element name="SearchResponse" >
+	<complexType>
+	  <sequence>
+	    <element ref="tns:c" />
+	  </sequence>
+	</complexType>
+      </element>
+
+      <element name="SearchConvResponse" >
+	<complexType>
+	  <sequence>
+	    <element ref="tns:c" />
+	  </sequence>
+	</complexType>
+      </element>
+
+    </schema>
+  </types>
+  
+  <message name="context">
+    <part name="context" element="zns:context"/>
+  </message>
+  
+  <message name="AuthRequest">
+    <part name="AuthRequest" element="tns:AuthRequest"/>
+  </message>
+  
+  <message name="AuthResponse">
+    <part name="AuthResponse" element="tns:AuthResponse"/>
+  </message>
+  
+  <message name="CreateAccountRequest">
+    <part name="CreateAccountRequest" element="tns:CreateAccountRequest" />
+  </message>
+
+  <message name="CreateAccountResponse">
+    <part name="CreateAccountResponse" element="tns:CreateAccountResponse" />
+  </message>
+
+  <message name="DeleteAccountRequest">
+    <part name="DeleteAccountRequest" element="tns:DeleteAccountRequest" />
+  </message>
+
+  <message name="DeleteAccountResponse">
+    <part name="DeleteAccountResponse" element="tns:DeleteAccountResponse" />
+  </message>
+
+  <message name="GetAccountRequest">
+    <part name="GetAccountRequest" element="tns:GetAccountRequest" />
+  </message>
+
+  <message name="GetAccountResponse">
+    <part name="GetAccountResponse" element="tns:GetAccountResponse" />
+  </message>  
+
+  <message name="SearchRequest" >
+    <part name="SearchRequest" element="zmns:SearchRequest" />
+  </message>
+
+  <message name="SearchConvRequest" >
+    <part name="SearchConvRequest" element="zmns:SearchConvRequest" />
+  </message>
+
+  <message name="SearchResponse">
+    <part name="SearchResponse" element="zmns:SearchResponse" />
+  </message>
+
+  <message name="SearchConvResponse">
+    <part name="SearchConvResponse" element="zmns:SearchConvResponse" />
+  </message>
+
+  <message name="ModifyAccountRequest">
+    <part name="ModifyAccountRequest" element="tns:ModifyAccountRequest" />
+  </message>
+
+  <message name="ModifyAccountResponse">
+    <part name="ModifyAccountResponse" element="tns:ModifyAccountResponse" />
+  </message>
+
+  <message name="GetFolderRequest">
+    <part name="GetFolderRequest" element="zmns:GetFolderRequest" />
+  </message>
+
+  <message name="GetFolderResponse">
+    <part name="GetFolderResponse" element="zmns:GetFolderRequest" />
+  </message>
+  
+  <portType name="ZimbraPort">
+    <operation name="AuthRequest">
+      <input message="tns:AuthRequest"/>
+      <output message="tns:AuthResponse"/>
+    </operation>
+
+    <operation name="SearchRequest" >
+      <input message="tns:SearchRequest" />
+      <output message="tns:SearchResponse" />
+    </operation>
+
+    <operation name="SearchConvRequest" >
+      <input message="tns:SearchConvRequest" />
+      <output message="tns:SearchConvResponse" />
+    </operation>
+
+    <operation name="GetFolderRequest" >
+      <input message="tns:GetFolderRequest" />
+      <output message="tns:GetFolderResponse" />
+    </operation>
+    
+    <operation name="CreateAccountRequest" >
+      <input message="tns:CreateAccountRequest" />
+      <output message="tns:CreateAccountResponse" />
+    </operation>
+
+    <operation name="GetAccountRequest" >
+      <input message="tns:GetAccountRequest" />
+      <output message="tns:GetAccountResponse" />
+    </operation>
+
+    <operation name="DeleteAccountRequest" >
+      <input message="tns:DeleteAccountRequest" />
+      <output message="tns:DeleteAccountResponse" />
+    </operation>
+
+    <operation name="ModifyAccountRequest" >
+      <input message="tns:ModifyAccountRequest" />
+      <output message="tns:ModifyAccountResponse" />
+    </operation>
+
+  </portType>
+  
+  <binding name="ZimbraBinding" type="tns:ZimbraPort">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+
+    <operation name="AuthRequest">
+      <soap:operation soapAction="/service/admin/soap/AuthRequest"/>
+      <input>
+        <soap:body use="literal"/>
+      </input>
+      <output>
+        <soap:body use="literal"/>
+      </output>
+    </operation>
+
+    <operation name="SearchRequest">
+      <soap:operation soapAction="/service/admin/soap/SearchRequest"/>
+      <input>
+        <soap:body use="literal"/>
+      </input>
+      <output>
+        <soap:body use="literal"/>
+      </output>
+    </operation>
+
+    <operation name="SearchConvRequest">
+      <soap:operation soapAction="/service/admin/soap/SearchConvRequest"/>
+      <input>
+        <soap:body use="literal"/>
+      </input>
+      <output>
+        <soap:body use="literal"/>
+      </output>
+    </operation>
+
+    <operation name="GetFolderRequest">
+      <soap:operation soapAction="/service/admin/soap/GetFolderRequest"/>
+      <input>
+        <soap:body use="literal"/>
+      </input>
+      <output>
+        <soap:body use="literal"/>
+      </output>
+    </operation>
+
+
+    <operation name="CreateAccountRequest">
+      <soap:operation soapAction="/service/admin/soap/CreateAccountRequest"/>
+      <input>
+        <soap:body use="literal"/>
+      </input>
+      <output>
+        <soap:body use="literal"/>
+      </output>
+    </operation>
+
+    <operation name="GetAccountRequest">
+       <soap:operation soapAction="/service/admin/soap/GetAccountRequest" />
+      <input>
+	<soap:body use="literal"/>
+      </input>
+      <output>
+        <soap:body use="literal"/>
+      </output>
+    </operation>
+
+    <operation name="DeleteAccountRequest">
+       <soap:operation soapAction="/service/admin/soap/DeleteAccountRequest" />
+      <input>
+	<soap:body use="literal"/>
+      </input>
+      <output>
+        <soap:body use="literal"/>
+      </output>
+    </operation>
+
+    <operation name="ModifyAccountRequest">
+       <soap:operation soapAction="/service/admin/soap/ModifyAccountRequest" />
+      <input>
+	<soap:body use="literal"/>
+      </input>
+      <output>
+        <soap:body use="literal"/>
+      </output>
+    </operation>
+
+  </binding>
+  
+  
+  
+  <service name="zimbraAdmin">
+    <documentation>Zimbra's Admin SOAP API.</documentation>    
+
+    <port name="AppPort" binding="tns:ZimbraBinding">
+	 <soap:address location="https://dummy.es:7071/service/admin/soap"/>
+    </port>
+    
+  </service>
+
+</definitions>
