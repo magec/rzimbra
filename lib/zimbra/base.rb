@@ -153,6 +153,20 @@ module Zimbra
        :attributes => {:part => "part",:body => "body",:s => "size",:mid => "message_id",:cid => "conv_id",:truncated => "truncated",:ct => "content_type",:name => "name",:cd => "content_disposition",:filename => "filename",:ci => "content_id",:cl => "content_location"},
        :elements => {:content => "content"}, :containers => { :mp => "parts"}
       
+    },
+    :comp => {
+      :parent => Base,
+      :class_name => "Comp",
+      :element_name => "comp",
+      :attributes => {:p => "p"},
+      :elements => {},:containers => {}
+    },
+    :inv => {
+      :parent => Base,
+      :class_name => "Inv",
+      :element_name => "inv",
+      :attributes => {:p => "p"},
+      :elements => {},:containers => {}
     }
   }
   

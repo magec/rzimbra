@@ -154,9 +154,11 @@
       </complexType>
 
       <complexType name="inv" >
+	<attribute name="p" type="xsd:string" />
       </complexType>
-
+      
       <complexType name="comp" >
+	<attribute name="p" type="xsd:string" />
       </complexType>
 
       <element name="GetFolderRequest">
@@ -225,8 +227,8 @@
 	    <element name="su" type="xsd:string" />
 	    <element name="fr" type="xsd:string" />
 	    <element name="mid" type="xsd:string" />
-	    <element name="inv" type="zmns:inv" />
-	    <element name="comp" type="zmns:comp" />
+	    <element name="inv" type="zmns:inv" minOccurs="0" />
+	    <element name="comp" type="zmns:comp" minOccurs="0" />
 	  </sequence>
 	</complexType>
       </element>    
@@ -267,6 +269,22 @@
 	  <sequence>
 	    <element ref="tns:c" />
 	  </sequence>
+	</complexType>
+      </element>
+
+      <element name="CreateAppointmentRequest" >
+	<complexType>
+	  <attribute name="pepe" type="xsd:string" />
+	  <sequence>
+	    <element ref="zmns:m" />
+	  </sequence>
+	</complexType>
+      </element>
+
+      <element name="CreateAppointmentResponse" >
+	<complexType>
+	  <attribute name="calItemId" type="xsd:string" />
+	  <attribute name="invId" type="xsd:string" />
 	</complexType>
       </element>
 
@@ -340,6 +358,14 @@
   <message name="GetFolderResponse">
     <part name="GetFolderResponse" element="zmns:GetFolderRequest" />
   </message>
+
+  <message name="CreateAppointmentRequest">
+    <part name="CreateAppointmentRequest" element="zmns:CreateAppointmentRequest" />
+  </message>
+
+  <message name="CreateAppointmentResponse">
+    <part name="CreateAppointmentResponse" element="zmns:CreateAppointmentResponse" />
+  </message>
   
   <portType name="ZimbraPort">
     <operation name="AuthRequest">
@@ -380,6 +406,11 @@
     <operation name="ModifyAccountRequest" >
       <input message="tns:ModifyAccountRequest" />
       <output message="tns:ModifyAccountResponse" />
+    </operation>
+
+    <operation name="CreateAppointmentRequest" >
+      <input message="tns:CreateAppointmentRequest" />
+      <output message="tns:CreateAppointmentResponse" />
     </operation>
 
   </portType>
@@ -460,6 +491,16 @@
 
     <operation name="ModifyAccountRequest">
        <soap:operation soapAction="/service/admin/soap/ModifyAccountRequest" />
+      <input>
+	<soap:body use="literal"/>
+      </input>
+      <output>
+        <soap:body use="literal"/>
+      </output>
+    </operation>
+
+    <operation name="CreateAppointmentRequest">
+       <soap:operation soapAction="/service/admin/soap/CreateAppointmentRequest" />
       <input>
 	<soap:body use="literal"/>
       </input>

@@ -17,5 +17,12 @@ module Zimbra
       return @attributes[:all_day] == "1"
     end
     
+    def self.create(credentials,attrs = {})
+      result = {}
+      attrs.each{|key,value| result[("xmlattr_"+key.to_s).to_sym] = value }
+      result[:m] = {:content => "pepe" ,:comp => { :xmlattr_p =>"pp"} }
+            return driver.CreateAppointmentRequest(credentials,result.merge({:xmlattr_pepe => "all"}))
+    end
+    
   end
 end
