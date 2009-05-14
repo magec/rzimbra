@@ -1,8 +1,8 @@
 # This file is just neccesary to run the tests,
 config:
-	end_point_url: https://servername:7071/service/admin/soap
-	admin_login: name@domain
-	admin_password: admin_password
-	test_account: name@domain
-	test_password: whatever
+  end_point_url: "https://server:7071/service/admin/soap"
+  admin_login: admin@domain
+  admin_password: password 
+  test_login: test@domain
+  test_password: whatever
 

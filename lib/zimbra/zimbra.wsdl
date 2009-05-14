@@ -153,6 +153,12 @@
 	</sequence>
       </complexType>
 
+      <complexType name="inv" >
+      </complexType>
+
+      <complexType name="comp" >
+      </complexType>
+
       <element name="GetFolderRequest">
 	<complexType>
 	  <sequence>
@@ -219,6 +225,8 @@
 	    <element name="su" type="xsd:string" />
 	    <element name="fr" type="xsd:string" />
 	    <element name="mid" type="xsd:string" />
+	    <element name="inv" type="zmns:inv" />
+	    <element name="comp" type="zmns:comp" />
 	  </sequence>
 	</complexType>
       </element>    
