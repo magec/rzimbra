@@ -1,6 +1,6 @@
 $:.unshift(File.dirname(__FILE__))
 
-require 'test/unit/ui/gtk2/testrunner'
+require 'test/unit/ui/console/testrunner'
 require 'test/unit/testsuite'
 require 'test_message'
 require 'test_folder'
@@ -21,5 +21,5 @@ class TestZimbra
 end
 
 
-Test::Unit::UI::GTK2::TestRunner.run(TestZimbra)
+Test::Unit::UI::Console::TestRunner.run(TestZimbra)
 

@@ -1,4 +1,4 @@
-$:.unshift(File.dirname(__FILE__) + '/../lib')
+$:.unshift(File.dirname(__FILE__) + '/../lib').unshift(File.dirname(__FILE__))
 
 require 'test/unit'
 require 'rzimbra'
@@ -8,7 +8,8 @@ class TestSoap < Test::Unit::TestCase
 
   def setup
     @client = Zimbra::Base.config(:endpoint_url => APP_CONFIG["end_point_url"])
-    @credentials = Zimbra::Folder.get_credentials(APP_CONFIG["admin_login"],APP_CONFIG["admin_password"])
+    @client = Zimbra::Base.driver
+    @credentials = Zimbra::Base.get_credentials(APP_CONFIG["admin_login"],APP_CONFIG["admin_password"])
     assert(@credentials,"Login was incorrect")
   end
   

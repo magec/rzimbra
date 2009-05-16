@@ -12,7 +12,10 @@ class TestMessage < Test::Unit::TestCase
   end
 
   def test_create_appointment
-    @appointment = Zimbra::Appointment.create(@credentials)
+    @appointment = Zimbra::Appointment.create(@credentials,:addresses => [Zimbra::Address.new(:address => "jose@magec.es",:type => "t")],:subject => "Hola",
+                                              :start_time => Zimbra::ZimbraTime.new(Time.now+10),:duration => Zimbra::Duration.new(:days => "1"),
+                                              :organizer => Zimbra::Organizer.new(:address => "admin@magec.es",:display_name => "juan"),
+                                              :atendees => [Zimbra::Atendee.new(:address => "jose@magec.es",:display_name => "juan",:role => "REQ",:participation_status =>"TE" )])
     assert_not_nil @appointment, "Error, Appointment cannot be created"
   end
 end
