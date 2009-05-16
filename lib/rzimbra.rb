@@ -11,5 +11,7 @@ require 'zimbra/calendar_item'
 require 'zimbra/appointment'
 require 'zimbra/task'
 require 'zimbra/note'
-
+require 'zimbra/time_helpers'
+require 'zimbra/address'
+require 'zimbra/calendar_component'
 
