@@ -7,8 +7,6 @@ require 'soap/header/simplehandler'
 require 'soap/mapping'
 require 'xml'
 
-
-
 # Hack in order to set single headers to a soap call
 
 class SOAP::Header::HandlerSet
@@ -26,12 +24,31 @@ end
 
 module Zimbra
 
-  class Base; end
+  class Base; 
+    attr_accessor :value
+  end
   class MailItem < Base; end
+  class ZimbraTime <Base ; end
   class CalendarItem < MailItem; end
   
   module ZimbraObject
     module InstanceMethods
+      def initialize(attrs = {})
+        @attributes ||= {}
+        @attributes = attrs
+      end
+
+      def to_soap
+        meta_inf = META_INF.values.find { |i| "Zimbra::" + i[:class_name] == self.class.to_s }
+        attribute_to_soap = {}
+        meta_inf[:attributes].each{|key,value| attribute_to_soap[value] = key}
+        current_element = SOAP::SOAPElement.new(meta_inf[:element_name],value)
+        puts attribute_to_soap.inspect
+        @attributes.each{ |key,value| puts key.to_s; current_element.extraattr[attribute_to_soap[key.to_s]] = value}        
+
+        current_element
+      end      
+
       def method_missing(method_name,*args)
         if @attributes.has_key?(method_name)
           return @attributes[method_name]
@@ -47,6 +64,7 @@ module Zimbra
       end
       
     end
+
     module ClassMethods      
       def from_xml(xml)
         object = self.new
@@ -156,9 +174,10 @@ module Zimbra
     },
     :comp => {
       :parent => Base,
-      :class_name => "Comp",
+      :class_name => "CalendarComponent",
       :element_name => "comp",
-      :attributes => {:p => "p"},
+      :attributes => {:status => "status",:fb => "f",:fba => "fba",:transp => "transp",:class  => "type ",:allDay => "all_day",:name => "name",:loc => "location",:isOrg => "is_org",
+        :seq  => "seq ",:priority => "priority",:percentComplete => "percent_complete",:completed => "completed",:url => "url"},      
       :elements => {},:containers => {}
     },
     :inv => {
@@ -167,7 +186,37 @@ module Zimbra
       :element_name => "inv",
       :attributes => {:p => "p"},
       :elements => {},:containers => {}
+    },
+    :s => {
+      :parent => Base,
+      :class_name => "ZimbraTime",
+      :element_name => "s",
+      :attributes => {:d => "date",:tz => "timezone_identifier" },
+      :elements => {},:containers => {}
+    },
+    :dur => {
+      :parent => Base,
+      :class_name => "Duration",
+      :element_name => "dur",
+      :attributes => {:neg => "neg",:w => "weeks",:d => "days",:h => "hours",:m => "mins",:s => "secs"},
+      :elements => {},:containers => {}
+    },
+    :or => {
+      :parent => Base,
+      :class_name => "Organizer",
+      :element_name => "or",
+      :attributes => { :a => "address",:d => "display_name",:sentBy => "sent_by",:dir => "dir",:lang => "language"},
+      :elements => {},:containers => {}
+    },
+    :at => {
+      :parent => Base,
+      :class_name => "Atendee",
+      :element_name => "at",
+      :attributes => { :a => "address",:d => "display_name",:sentBy => "sent_by",:dir => "dir",:lang => "language",:role => "role",:ptst => "participation_status",
+        :rsvp => "rsvp",:cutype => "cutype",:member => "member",:delTo => "delegated_to",:delFrom => "delegated_from"},
+      :elements => {},:containers => {}
     }
+    
   }
   
   META_INF.each_value do |current_class_info|
@@ -204,6 +253,12 @@ module Zimbra
     
   end
   
+  
+  # Instead of inherit from the driver i make use of objetco composition, so the actual calls are delegated
+  # to a SOAPClient instance that deals with all of the SOAP stuff
+  # As soon is I get how to map arbitrary objects into SOAP calls by means of the mapping registry and stuff 
+  # (black magic not documented in soap4r) I'll rewrite this metaprogramming hell, but by now it does the job.
+
   class SOAPClient   
     WSDL_URL = "file:///#{File.expand_path(File.dirname(__FILE__))}/zimbra.wsdl"
 
@@ -229,7 +284,10 @@ module Zimbra
       return credentials
     end
 
-    # Every call has to have the credentials as the first argument
+    # This is where the magic happends, I make an object mapping myself
+    # I receive the message I check what class is it and call the class method (from_xml) of it.
+    # This is what soap4r should do for me but I dont get it to do so ad have no more time to spend on it.
+    # We expect every call to have the credentials as the first argument
 
     def method_missing(method_name,*args)
       if @driver.respond_to?(method_name.to_s)
