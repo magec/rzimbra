@@ -25,7 +25,6 @@ module Zimbra
       return false
     end
 
-
     def date
       return Time.at(@attributes["date"].to_f/1000)
     end
