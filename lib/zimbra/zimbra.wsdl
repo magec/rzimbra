@@ -156,9 +156,68 @@
       <complexType name="inv" >
 	<attribute name="p" type="xsd:string" />
       </complexType>
+
+      <complexType name="s" >
+	<attribute name="d" type="xsd:string" />
+	<attribute name="tz" type="xsd:string" />
+      </complexType>
+
+      <complexType name="dur" >
+	 <attribute name="s" type="xsd:string" />
+	 <attribute name="m" type="xsd:string" />
+	 <attribute name="h" type="xsd:string" />
+	 <attribute name="d" type="xsd:string" />
+	 <attribute name="w" type="xsd:string" />
+	 <attribute name="neg" type="xsd:string" />
+      </complexType>
       
+
+      <complexType name="or">
+       <attribute name="lang" type="xsd:string" />
+       <attribute name="dir" type="xsd:string" />
+       <attribute name="sentBy" type="xsd:string" />
+       <attribute name="d" type="xsd:string" />
+       <attribute name="a" type="xsd:string" />
+       <attribute name="attributes" type="xsd:string" />
+      </complexType>
+
+      <complexType name="at">
+	<attribute name="delFrom" type="xsd:string" />
+	<attribute name="delTo" type="xsd:string" />
+	<attribute name="member" type="xsd:string" />
+	<attribute name="cutype" type="xsd:string" />
+	<attribute name="rsvp" type="xsd:string" />
+	<attribute name="ptst" type="xsd:string" />
+	<attribute name="role" type="xsd:string" />
+	<attribute name="lang" type="xsd:string" />
+	<attribute name="dir" type="xsd:string" />
+	<attribute name="sentBy" type="xsd:string" />
+	<attribute name="d" type="xsd:string" />
+	<attribute name="a" type="xsd:string" />
+	<attribute name="attributes" type="xsd:string" />
+      </complexType>
+
       <complexType name="comp" >
-	<attribute name="p" type="xsd:string" />
+	 <attribute name="url" type="xsd:string" />
+	 <attribute name="completed" type="xsd:string" />
+	 <attribute name="percentComplete" type="xsd:string" />
+	 <attribute name="priority" type="xsd:string" />
+	 <attribute name="seq " type="xsd:string" />
+	 <attribute name="isOrg" type="xsd:string" />
+	 <attribute name="loc" type="xsd:string" />
+	 <attribute name="name" type="xsd:string" />
+	 <attribute name="allDay" type="xsd:string" />
+	 <attribute name="class " type="xsd:string" />
+	 <attribute name="transp" type="xsd:string" />
+	 <attribute name="fba" type="xsd:string" />
+	 <attribute name="fb" type="xsd:string" />
+	 <attribute name="status" type="xsd:string" />
+	 <sequence>
+	   <element name="s" ref="zmns:s" />
+	   <element name="e" ref="zmns:e" />
+	   <element name="or" ref="zmns:e" />
+	   <element name="at" ref="zmns:e" />
+	 </sequence>
       </complexType>
 
       <element name="GetFolderRequest">
@@ -274,7 +333,6 @@
 
       <element name="CreateAppointmentRequest" >
 	<complexType>
-	  <attribute name="pepe" type="xsd:string" />
 	  <sequence>
 	    <element ref="zmns:m" />
 	  </sequence>
