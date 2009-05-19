@@ -5,4 +5,5 @@ config:
   admin_password: password 
   test_login: test@domain
   test_password: whatever
+  distribution_list: a_give_dl@domain
 
