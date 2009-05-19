@@ -43,8 +43,8 @@ module Zimbra
         attribute_to_soap = {}
         meta_inf[:attributes].each{|key,value| attribute_to_soap[value] = key}
         current_element = SOAP::SOAPElement.new(meta_inf[:element_name],value)
-        puts attribute_to_soap.inspect
-        @attributes.each{ |key,value| puts key.to_s; current_element.extraattr[attribute_to_soap[key.to_s]] = value}        
+#        puts attribute_to_soap.inspect
+        @attributes.each{ |key,value|  current_element.extraattr[attribute_to_soap[key.to_s]] = value}        
 
         current_element
       end      
@@ -53,13 +53,22 @@ module Zimbra
         if @attributes.has_key?(method_name)
           return @attributes[method_name]
         end
-        # Assignation
-        if method_name.to_s[-1] == 61 && @attributes.has_key?(method_name.to_s[0..-2].to_sym)
+
+        puts @attributes.inspect
+        # Assignment
+        if method_name.to_s[-1] == 61 && @attributes.has_key?(method_name.to_s[0..-2])
           return @attributes[method_name.to_s[0..-2].to_sym] = args[0]
         end
+
         # If the attribute is not set
         if self.class::ATTR_MAPPING.has_value?(method_name.to_s)
           return nil
+        end
+
+        # Initialization
+
+        if method_name.to_s[-1] == 61 && self.class::ATTR_MAPPING.has_value?(method_name.to_s[0..-2])
+          return @attributes[method_name.to_s[0..-2].to_sym] = args[0]
         end
 
         raise NoMethodError.new(method_name.to_s)
