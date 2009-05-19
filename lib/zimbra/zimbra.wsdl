@@ -346,6 +346,42 @@
 	</complexType>
       </element>
 
+      <element name="GetDistributionListRequest" >
+	<complexType>
+	  <attribute name="limit" type="xsd:string" />
+	  <attribute name="offset" type="xsd:string" />
+	  <attribute name="sortAscending" type="xsd:string" />
+	  <sequence>
+	    <element name="dl">
+	      <complexType>
+		<attribute name="by" type="xsd:string" />
+	      </complexType>
+	    </element>
+	  </sequence>
+	</complexType>
+      </element>
+
+      <element name="dl" >
+	<complexType>
+	  <attribute name="name" type="xsd:string" />
+	  <attribute name="id" type="xsd:string" />
+	  <sequence>
+	    <elemenr name="dlm" type="xsd:string" />
+	    <element ref="tns:a" />
+	  </sequence>
+	</complexType>
+      </element>
+
+      <element name="GetDistributionListResponse" >
+	<complexType>
+	  <attribute name="more" type="xsd:string" />
+	  <attribute name="total" type="xsd:string" />
+	  <sequence>
+	    <element ref="zmns:dl" />
+	  </sequence>
+	</complexType>
+      </element>
+
     </schema>
   </types>
   
@@ -424,6 +460,14 @@
   <message name="CreateAppointmentResponse">
     <part name="CreateAppointmentResponse" element="zmns:CreateAppointmentResponse" />
   </message>
+
+  <message name="GetDistributionListRequest">
+    <part name="GetDistributionListRequest" element="zmns:GetDistributionListRequest" />
+  </message>
+
+  <message name="GetDistributionListResponse">
+    <part name="GetDistributionListResponse" element="zmns:GetDistributionListResponse" />
+  </message>
   
   <portType name="ZimbraPort">
     <operation name="AuthRequest">
@@ -469,6 +513,11 @@
     <operation name="CreateAppointmentRequest" >
       <input message="tns:CreateAppointmentRequest" />
       <output message="tns:CreateAppointmentResponse" />
+    </operation>
+
+    <operation name="GetDistributionListRequest" >
+      <input message="tns:GetDistributionListRequest" />
+      <output message="tns:GetDistributionListResponse" />
     </operation>
 
   </portType>
@@ -559,6 +608,17 @@
 
     <operation name="CreateAppointmentRequest">
        <soap:operation soapAction="/service/admin/soap/CreateAppointmentRequest" />
+      <input>
+	<soap:body use="literal"/>
+      </input>
+      <output>
+        <soap:body use="literal"/>
+      </output>
+    </operation>
+
+
+    <operation name="GetDistributionListRequest">
+       <soap:operation soapAction="/service/admin/soap/GetDistributionListRequest" />
       <input>
 	<soap:body use="literal"/>
       </input>
