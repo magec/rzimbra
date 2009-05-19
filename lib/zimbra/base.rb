@@ -20,7 +20,7 @@ class SOAP::Header::HandlerSet
   end
 end
 
-
+class NoAttributeError < Exception;end
 
 module Zimbra
 
@@ -53,6 +53,7 @@ module Zimbra
         if @attributes.has_key?(method_name)
           return @attributes[method_name]
         end
+        # Assignation
         if method_name.to_s[-1] == 61 && @attributes.has_key?(method_name.to_s[0..-2].to_sym)
           return @attributes[method_name.to_s[0..-2].to_sym] = args[0]
         end
@@ -60,6 +61,7 @@ module Zimbra
         if self.class::ATTR_MAPPING.has_value?(method_name.to_s)
           return nil
         end
+
         raise NoMethodError.new(method_name.to_s)
       end
       
@@ -72,6 +74,7 @@ module Zimbra
 #          object.send(self::ATTR_MAPPING[attribute.name.to_sym] + "=",attribute.value)
 #          puts attribute.to_s
           attributes = object.send("attributes")
+          raise "Attribute: " + attribute.name + " does not have any mapping" unless self::ATTR_MAPPING[attribute.name.to_sym]
           attributes ||= {}
           attributes[self::ATTR_MAPPING[attribute.name.to_sym].to_sym] = attribute.value
           object.send("attributes=",attributes)
@@ -104,10 +107,26 @@ module Zimbra
       :class_name => "Appointment",
       :element_name => "appt",
       :attributes => {:alarm => "alarm", :loc => "loc", :transp => "transparency", :fb => "fb", :id => "appointment_id", :rev => "rev", :fba => "fba", :isOrg => ":is_org",:t => "t",
-        :allDay => "all_day", :score => "score", :compNum => "compNum", :name => "name", :s => "s", :d => "date", :ms => "ms", :md => "md", :class => "class_name", :uid => "uid", 
+        :allDay => "all_day", :score => "score", :compNum => "compNum", :name => "name", :s => "s", :d => "date", :ms => "ms", :md => "md", :class => "class_name", :uid => "uid", :otherAtt => "other_attendees",
         :ptst => "ptst", :cm => "cm", :status => "status", :l => "l", :dur => "dur", :sf => "sf", :f => "f", :x_uid => "x_uid", :invId => "invId"},
       :elements => {:or => "organizer",:fr => "default_fragment" },
       :containers => {:inst => "instances"}
+    },
+    :dl => {
+      :parent => Base,
+      :class_name => "DistributionList",
+      :element_name => "dl",
+      :attributes => {:name => "name",:id => "dl_id"},
+      :elements => {},
+      :containers => {:dlm => "members",:a => "dl_attributes"},
+    },
+    :dlm => {
+      :parent => Base,
+      :class_name => "DistributionListMember",
+      :element_name => "dlm",
+      :attributes => {},
+      :elements => {},
+      :containers => {}
     },
     :inst => {
       :parent => Base,
