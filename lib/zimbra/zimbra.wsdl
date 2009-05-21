@@ -346,6 +346,22 @@
 	</complexType>
       </element>
 
+      <element name="CancelAppointmentRequest" >
+	<complexType>
+	  <attribute name="id" type="xsd:string" />
+	  <attribute name="comp" type="xsd:string" />
+	  <sequence>
+	    <element ref="zmns:m" />
+	  </sequence>
+	</complexType>
+      </element>
+
+      <element name="CancelAppointmentResponse" >
+	<complexType>
+	  <attribute name="id" type="xsd:string" />
+	</complexType>
+      </element>
+
       <element name="GetDistributionListRequest" >
 	<complexType>
 	  <attribute name="limit" type="xsd:string" />
@@ -382,6 +398,36 @@
 	</complexType>
       </element>
 
+      <element name="CreateTaskRequest" >
+	<complexType>
+	  <sequence>
+	    <element ref="zmns:m" />
+	  </sequence>
+	</complexType>
+      </element>
+
+      <element name="CreateTaskResponse" >
+	<complexType>
+	  <attribute name="calItemId" type="xsd:string" />
+	  <attribute name="invId" type="xsd:string" />
+	</complexType>
+      </element>
+
+      <element name="CancelTaskRequest" >
+	<complexType>
+          <attribute name="id" type="xsd:string" />
+	  <attribute name="comp" type="xsd:string" />
+	  <attribute name="requestId" type="xsd:string" />
+	</complexType>
+      </element>
+
+      <element name="CancelTaskResponse" >
+	<complexType>
+	  <attribute name="requestId" type="xsd:string" />
+	</complexType>
+      </element>
+
+	
     </schema>
   </types>
   
@@ -453,6 +499,14 @@
     <part name="GetFolderResponse" element="zmns:GetFolderRequest" />
   </message>
 
+  <message name="GetDistributionListRequest">
+    <part name="GetDistributionListRequest" element="zmns:GetDistributionListRequest" />
+  </message>
+
+  <message name="GetDistributionListResponse">
+    <part name="GetDistributionListResponse" element="zmns:GetDistributionListResponse" />
+  </message>
+
   <message name="CreateAppointmentRequest">
     <part name="CreateAppointmentRequest" element="zmns:CreateAppointmentRequest" />
   </message>
@@ -461,12 +515,28 @@
     <part name="CreateAppointmentResponse" element="zmns:CreateAppointmentResponse" />
   </message>
 
-  <message name="GetDistributionListRequest">
-    <part name="GetDistributionListRequest" element="zmns:GetDistributionListRequest" />
+  <message name="CancelAppointmentRequest">
+    <part name="CancelAppointmentRequest" element="zmns:CancelAppointmentRequest" />
   </message>
 
-  <message name="GetDistributionListResponse">
-    <part name="GetDistributionListResponse" element="zmns:GetDistributionListResponse" />
+  <message name="CancelAppointmentResponse">
+    <part name="CancelAppointmentResponse" element="zmns:CancelAppointmentResponse" />
+  </message>
+
+  <message name="CreateTaskRequest">
+    <part name="CreateTaskRequest" element="zmns:CreateTaskRequest" />
+  </message>
+
+  <message name="CreateTaskResponse">
+    <part name="CreateTaskResponse" element="zmns:CreateTaskResponse" />
+  </message>
+
+  <message name="CancelTaskRequest">
+    <part name="CancelTaskRequest" element="zmns:CancelTaskRequest" />
+  </message>
+
+  <message name="CancelTaskResponse">
+    <part name="CancelTaskResponse" element="zmns:CancelTaskResponse" />
   </message>
   
   <portType name="ZimbraPort">
@@ -518,6 +588,21 @@
     <operation name="GetDistributionListRequest" >
       <input message="tns:GetDistributionListRequest" />
       <output message="tns:GetDistributionListResponse" />
+    </operation>
+
+    <operation name="CreateTaskRequest" >
+      <input message="tns:CreateTaskRequest" />
+      <output message="tns:CreateTaskResponse" />
+    </operation>
+
+    <operation name="CancelTaskRequest" >
+      <input message="tns:CancelTaskRequest" />
+      <output message="tns:CancelTaskResponse" />
+    </operation>
+
+    <operation name="CancelAppointmentRequest" >
+      <input message="tns:CancelAppointmentRequest" />
+      <output message="tns:CancelAppointmentResponse" />
     </operation>
 
   </portType>
@@ -606,17 +691,6 @@
       </output>
     </operation>
 
-    <operation name="CreateAppointmentRequest">
-       <soap:operation soapAction="/service/admin/soap/CreateAppointmentRequest" />
-      <input>
-	<soap:body use="literal"/>
-      </input>
-      <output>
-        <soap:body use="literal"/>
-      </output>
-    </operation>
-
-
     <operation name="GetDistributionListRequest">
        <soap:operation soapAction="/service/admin/soap/GetDistributionListRequest" />
       <input>
@@ -627,6 +701,46 @@
       </output>
     </operation>
 
+    <operation name="CreateTaskRequest">
+       <soap:operation soapAction="/service/admin/soap/CreateTaskRequest" />
+      <input>
+	<soap:body use="literal"/>
+      </input>
+      <output>
+        <soap:body use="literal"/>
+      </output>
+    </operation>
+
+    <operation name="CancelTaskRequest">
+       <soap:operation soapAction="/service/admin/soap/CancelTaskRequest" />
+      <input>
+	<soap:body use="literal"/>
+      </input>
+      <output>
+        <soap:body use="literal"/>
+      </output>
+    </operation>
+
+    <operation name="CreateAppointmentRequest">
+       <soap:operation soapAction="/service/admin/soap/CreateAppointmentRequest" />
+      <input>
+	<soap:body use="literal"/>
+      </input>
+      <output>
+        <soap:body use="literal"/>
+      </output>
+    </operation>
+
+    <operation name="CancelAppointmentRequest">
+       <soap:operation soapAction="/service/admin/soap/CancelAppointmentRequest" />
+      <input>
+	<soap:body use="literal"/>
+      </input>
+      <output>
+        <soap:body use="literal"/>
+      </output>
+    </operation>
+	
   </binding>
   
   
