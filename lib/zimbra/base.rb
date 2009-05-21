@@ -21,40 +21,60 @@ class SOAP::Header::HandlerSet
 end
 
 class NoAttributeError < Exception;end
+class ArrayExpectedError < Exception;end
+class NoMetaInfFound < Exception;end
 
 module Zimbra
 
-  class Base; 
+  class Base;
     attr_accessor :value
   end
   class MailItem < Base; end
-  class ZimbraTime <Base ; end
+
   class CalendarItem < MailItem; end
-  
+
   module ZimbraObject
     module InstanceMethods
+
       def initialize(attrs = {})
+        @meta_inf = META_INF.values.find { |i| "Zimbra::" + i[:class_name] == self.class.to_s }
+        raises NoMetaInfFound unless @meta_inf
         @attributes ||= {}
-        @attributes = attrs
+        attrs.each do |key,value|
+          # If we are setting the value of a container
+          if @meta_inf[:containers].has_value?(key.to_s)
+            raise ArrayExpectedError if value.class != Array
+            aux = self.send(key.to_s)
+            aux ||= []
+            value.each {|item| aux << item }
+            self.send(key.to_s+"=",aux)
+          else
+            self.send(key.to_s + "=", value)
+          end
+        end
       end
 
       def to_soap
-        meta_inf = META_INF.values.find { |i| "Zimbra::" + i[:class_name] == self.class.to_s }
+
         attribute_to_soap = {}
-        meta_inf[:attributes].each{|key,value| attribute_to_soap[value] = key}
-        current_element = SOAP::SOAPElement.new(meta_inf[:element_name],value)
-#        puts attribute_to_soap.inspect
-        @attributes.each{ |key,value|  current_element.extraattr[attribute_to_soap[key.to_s]] = value}        
+
+        current_element = SOAP::SOAPElement.new(@meta_inf[:element_name],value)
+        # First we fill in the attributes
+        @meta_inf[:attributes].each { |key,value| ( aux = self.send(value) ) && current_element.extraattr[key] = aux}
+        # Then the elements
+        @meta_inf[:elements].each   { |key,value| ( aux = self.send(value) ) && current_element.add(SOAP::SOAPElement.new(key.to_s,aux)) }
+        # The the containers
+        @meta_inf[:containers].each { |key,value| ( aux = self.send(value) ) && aux.each { |aux_value| current_element.add( aux_value.to_soap )  } }
 
         current_element
-      end      
+      end
 
       def method_missing(method_name,*args)
         if @attributes.has_key?(method_name)
           return @attributes[method_name]
         end
 
-        puts @attributes.inspect
+
         # Assignment
         if method_name.to_s[-1] == 61 && @attributes.has_key?(method_name.to_s[0..-2])
           return @attributes[method_name.to_s[0..-2].to_sym] = args[0]
@@ -73,10 +93,10 @@ module Zimbra
 
         raise NoMethodError.new(method_name.to_s)
       end
-      
+
     end
 
-    module ClassMethods      
+    module ClassMethods
       def from_xml(xml)
         object = self.new
         xml.attributes.each do |attribute|
@@ -100,21 +120,31 @@ module Zimbra
           end
         end
         object
-      end      
+      end
     end
   end
-  
+
   # The creation of the base classes is made automagically
   # class_name maps the element name of the xml to the ruby class that is to be created
-  # element_name is the xml name of the element 
+  # element_name is the xml name of the element
   # attributes is a list mapping the element attributes with method names in ruby, the key is the xml and the value the mehod
   # containers is used when another objects are inside this one.
-  
+
   META_INF = {
     :appt => {
       :parent => CalendarItem,
       :class_name => "Appointment",
       :element_name => "appt",
+      :attributes => {:alarm => "alarm", :loc => "loc", :transp => "transparency", :fb => "fb", :id => "appointment_id", :rev => "rev", :fba => "fba", :isOrg => ":is_org",:t => "t",
+        :allDay => "all_day", :score => "score", :compNum => "compNum", :name => "name", :s => "s", :d => "date", :ms => "ms", :md => "md", :class => "class_name", :uid => "uid", :otherAtt => "other_attendees",
+        :ptst => "ptst", :cm => "cm", :status => "status", :l => "l", :dur => "duration", :sf => "sf", :f => "f", :x_uid => "x_uid", :invId => "invId"},
+      :elements => {:or => "organizer",:fr => "default_fragment" },
+      :containers => {:inst => "instances"}
+    },
+    :task => {
+      :parent => CalendarItem,
+      :class_name => "Task",
+      :element_name => "task",
       :attributes => {:alarm => "alarm", :loc => "loc", :transp => "transparency", :fb => "fb", :id => "appointment_id", :rev => "rev", :fba => "fba", :isOrg => ":is_org",:t => "t",
         :allDay => "all_day", :score => "score", :compNum => "compNum", :name => "name", :s => "s", :d => "date", :ms => "ms", :md => "md", :class => "class_name", :uid => "uid", :otherAtt => "other_attendees",
         :ptst => "ptst", :cm => "cm", :status => "status", :l => "l", :dur => "duration", :sf => "sf", :f => "f", :x_uid => "x_uid", :invId => "invId"},
@@ -168,10 +198,10 @@ module Zimbra
       :parent => Base,
       :class_name => "Address",
       :element_name => "e",
-      :attributes => {:a => "address",:d => "display_name",:t => "type",:p => "personal_name"},
+      :attributes => {:a => "address",:d => "display_name",:t => "type_address",:p => "personal_name"},
       :elements => {},:containers => {}
     },
-    :m => { 
+    :m => {
       :parent => MailItem,
       :class_name => "Message",
       :element_name => "m",
@@ -198,22 +228,22 @@ module Zimbra
        :element_name => "mp",
        :attributes => {:part => "part",:body => "body",:s => "size",:mid => "message_id",:cid => "conv_id",:truncated => "truncated",:ct => "content_type",:name => "name",:cd => "content_disposition",:filename => "filename",:ci => "content_id",:cl => "content_location"},
        :elements => {:content => "content"}, :containers => { :mp => "parts"}
-      
+
     },
     :comp => {
       :parent => Base,
-      :class_name => "CalendarComponent",
+      :class_name => "InvitationComponent",
       :element_name => "comp",
       :attributes => {:status => "status",:fb => "f",:fba => "fba",:transp => "transp",:class  => "type ",:allDay => "all_day",:name => "name",:loc => "location",:isOrg => "is_org",
-        :seq  => "seq ",:priority => "priority",:percentComplete => "percent_complete",:completed => "completed",:url => "url"},      
+        :seq  => "seq ",:priority => "priority",:percentComplete => "percent_complete",:completed => "completed",:url => "url"},
       :elements => {},:containers => {}
     },
     :inv => {
       :parent => Base,
-      :class_name => "Inv",
+      :class_name => "Invitation",
       :element_name => "inv",
-      :attributes => {:p => "p"},
-      :elements => {},:containers => {}
+      :attributes => {},
+      :elements => {},:containers => {:comp => "components"}
     },
     :s => {
       :parent => Base,
@@ -244,9 +274,9 @@ module Zimbra
         :rsvp => "rsvp",:cutype => "cutype",:member => "member",:delTo => "delegated_to",:delFrom => "delegated_from"},
       :elements => {},:containers => {}
     }
-    
+
   }
-  
+
   META_INF.each_value do |current_class_info|
     current_class = Class.new(current_class_info[:parent])
 
@@ -255,17 +285,17 @@ module Zimbra
     current_class_info[:containers].merge(current_class_info[:elements]).each_pair do |key,value|
       current_class.instance_eval("attr_accessor :#{value}")
     end
-    
+
     # Now we set the class methods plus a couple of Constants needed by that class methods
 
     current_class.extend(ZimbraObject::ClassMethods)
     current_class.const_set("CONTAINER_MAPPING",current_class_info[:containers])
     current_class.const_set("ELEMENT_MAPPING",current_class_info[:elements])
-    current_class.const_set("ATTR_MAPPING",current_class_info[:attributes])    
+    current_class.const_set("ATTR_MAPPING",current_class_info[:attributes])
     const_set(current_class_info[:class_name],current_class)
-
+    puts "Defined class: " + current_class_info[:class_name] if $DEBUG
   end
-  
+
   # This class will handle the header in order to authenticate
 
   class ClientAuthHeaderHandler < SOAP::Header::SimpleHandler
@@ -274,21 +304,21 @@ module Zimbra
       super(MyHeaderName)
       @credentials = credentials
     end
-    
+
     def on_simple_outbound
       { "sessionId" => @credentials[:sessionId],"authToken" => @credentials[:authToken] }
     end
-    
+
   end
-  
-  
+
+
   # Instead of inherit from the driver i make use of objetco composition, so the actual calls are delegated
   # to a SOAPClient instance that deals with all of the SOAP stuff
-  # As soon is I get how to map arbitrary objects into SOAP calls by means of the mapping registry and stuff 
+  # As soon is I get how to map arbitrary objects into SOAP calls by means of the mapping registry and stuff
   # (black magic not documented in soap4r) I'll rewrite this metaprogramming hell, but by now it does the job.
 
-  class SOAPClient   
-    WSDL_URL = "file:///#{File.expand_path(File.dirname(__FILE__))}/zimbra.wsdl"
+  class SOAPClient
+    WSDL_URL = "file://#{File.expand_path(File.dirname(__FILE__))}/zimbra.wsdl"
 
     @@lock = Mutex.new
 
@@ -301,7 +331,7 @@ module Zimbra
       @driver.return_response_as_xml = true
       @driver.wiredump_dev = STDOUT if $DEBUG
     end
-    
+
     def login(user,password)
       response = @driver.AuthRequest(:name => user,:password => password)
       xml_response = XML::Document.string(response)
@@ -328,7 +358,11 @@ module Zimbra
             current_object.credentials = credentials
             current_object
           end
-          return result
+          if result.length == 0
+            return [xml_response]
+          else
+            return result
+          end
         end
         #TODO: The session has to be refreshed sometimes
       else
@@ -336,12 +370,12 @@ module Zimbra
         raise NoMethodError
       end
     end
-    
+
   end
 
-  
+
   class Base
-    
+
     attr_accessor :value
     attr_accessor :credentials
     attr_accessor :attributes
@@ -349,20 +383,20 @@ module Zimbra
     include ZimbraObject::InstanceMethods
 
     @@config = {}
-    
+
     def self.config(configuration)
       @@config = configuration
     end
-    
+
     def self.get_credentials(user,password)
       return driver.login(user,password)
     end
-    
+
     def self.driver
       @@driver ||= SOAPClient.new(@@config[:endpoint_url])
     end
 
   end
-    
+
 end
 
