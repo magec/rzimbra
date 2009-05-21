@@ -8,7 +8,7 @@ class TestAccount < Test::Unit::TestCase
   
   TEST_PASSWORD = APP_CONFIG["test_password"]
   TEST_NAME     = APP_CONFIG["test_login"]
-
+puts APP_CONFIG["end_point_url"]
   def setup
     Zimbra::Base.config(:endpoint_url => APP_CONFIG["end_point_url"])
     @credentials = Zimbra::Folder.get_credentials(APP_CONFIG["admin_login"],APP_CONFIG["admin_password"])
