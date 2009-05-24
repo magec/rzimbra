@@ -24,24 +24,26 @@ module Zimbra
     #attr_accessor :date
     # The Java Timezone value of the date as used by Zimbra
     #attr_accessor :timezone_identifier
-    
+
     def initialize(start_time = DateTime.now)
+      super()
       @attributes ||= {}
       @attributes[:date] = start_time.strftime("%Y%m%dT%H%M%SZ")
+      puts @attributes[:date]
     end
 
     def date=(current_date)
         @attributes[:date] = current_date.strftime("%Y%m%dT%H%M%SZ")
     end
 
-    def date
-      DateTime.parse(@attributes[:date])
-    end
+    #def date
+    #  DateTime.parse(@attributes[:date])
+    #end
 
     def str_date
       return @attributes[:date]
     end
   end
 
-  
+
 end

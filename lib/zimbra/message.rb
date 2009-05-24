@@ -14,7 +14,7 @@ module Zimbra
 
     def from_hr
       current = ""
-      result = self.addresses.map do |i| 
+      result = self.addresses.map do |i|
         i.personal_name ? i.personal_name + " " + "<" + i.address + ">" : i.address if i.attributes[:type] == "f"
       end.compact.join ","
       result
@@ -25,7 +25,7 @@ module Zimbra
       return false
     end
 
-    def date
+    def date_rb
       return Time.at(@attributes["date"].to_f/1000)
     end
 

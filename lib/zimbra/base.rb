@@ -2,9 +2,11 @@
 require 'rubygems'
 gem 'soap4r'
 gem 'libxml-ruby'
+
 require "soap/wsdlDriver"
 require 'soap/header/simplehandler'
 require 'soap/mapping'
+
 require 'xml'
 
 # Hack in order to set single headers to a soap call
@@ -29,6 +31,7 @@ module Zimbra
   class Base;
     attr_accessor :value
   end
+
   class MailItem < Base; end
 
   class CalendarItem < MailItem; end
@@ -62,7 +65,14 @@ module Zimbra
         # First we fill in the attributes
         @meta_inf[:attributes].each { |key,value| ( aux = self.send(value) ) && current_element.extraattr[key] = aux}
         # Then the elements
-        @meta_inf[:elements].each   { |key,value| ( aux = self.send(value) ) && current_element.add(SOAP::SOAPElement.new(key.to_s,aux)) }
+        @meta_inf[:elements].each   do |key,value|
+          aux = self.send(value)
+          if aux.respond_to?("to_soap")
+            current_element.add(aux.to_soap)
+          else
+            current_element.add(SOAP::SOAPElement.new(key.to_s,aux) )
+          end
+        end
         # The the containers
         @meta_inf[:containers].each { |key,value| ( aux = self.send(value) ) && aux.each { |aux_value| current_element.add( aux_value.to_soap )  } }
 
@@ -131,6 +141,15 @@ module Zimbra
   # containers is used when another objects are inside this one.
 
   META_INF = {
+    :comp => {
+      :parent => Base,
+      :class_name => "InvitationComponent",
+      :element_name => "comp",
+      :attributes => {:status => "status",:fb => "f",:fba => "fba",:transp => "transp",:class  => "type ",
+        :allDay => "all_day",:name => "name",:loc => "location",:isOrg => "is_org",
+        :seq  => "seq ",:priority => "priority",:percentComplete => "percent_complete",:completed => "completed",:url => "url"},
+      :elements => {:s => "start_time",:dur => "duration",:or => "organizer"},:containers => {:at => "atendees"}
+    },
     :appt => {
       :parent => CalendarItem,
       :class_name => "Appointment",
@@ -206,7 +225,7 @@ module Zimbra
       :class_name => "Message",
       :element_name => "m",
       :attributes => {:id => "message_id",:d => "date",:sf => "sort_field",:score => "score",:t => "t", :sd => "sd", :f => "f",:cm => "cm",:l => "parent_id",:cid => "cid",:s =>"s",:rev => "rev",:idnt => "idnt"},
-      :elements => {:su => "subject",:fr => "fragment"},:containers => {:e => "addresses",:mp => "parts"}
+      :elements => {:su => "subject",:fr => "fragment",:inv => "invitation"},:containers => {:e => "addresses",:mp => "parts"}
     },
     :a => {
       :parent => Base,
@@ -230,19 +249,11 @@ module Zimbra
        :elements => {:content => "content"}, :containers => { :mp => "parts"}
 
     },
-    :comp => {
-      :parent => Base,
-      :class_name => "InvitationComponent",
-      :element_name => "comp",
-      :attributes => {:status => "status",:fb => "f",:fba => "fba",:transp => "transp",:class  => "type ",:allDay => "all_day",:name => "name",:loc => "location",:isOrg => "is_org",
-        :seq  => "seq ",:priority => "priority",:percentComplete => "percent_complete",:completed => "completed",:url => "url"},
-      :elements => {},:containers => {}
-    },
     :inv => {
       :parent => Base,
       :class_name => "Invitation",
       :element_name => "inv",
-      :attributes => {},
+      :attributes => {:uid => "uid" },
       :elements => {},:containers => {:comp => "components"}
     },
     :s => {

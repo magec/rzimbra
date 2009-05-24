@@ -22,11 +22,6 @@ module Zimbra
     end
 
     def create
-      request_method = "CreateTaskRequest"
-
-      if self.class == Appointment
-        request_method = "CreateAppointmentRequest"
-      end
 
       request = SOAP::SOAPElement.new(request_method)
       mail = SOAP::SOAPElement.new("m")
@@ -88,12 +83,18 @@ module Zimbra
     #    :atendees           => An array of Atendee instances
     #    :organizer          => An Organizer instance
 
-    def self.create(credentials,attrs = {})
+    def self.create(credentials,message)
 
-      instance = self.new(attrs)
-      instance.credentials = credentials
-      return instance.create
+      request_method = "CreateTaskRequest"
 
+      if self.class == Appointment
+        request_method = "CreateAppointmentRequest"
+      end
+      request = SOAP::SOAPElement.new(request_method)
+
+      request.extraattr["xmlns"] = "urn:zimbraMail"
+      request.add(message.to_soap)
+      result = driver.CreateAppointmentRequest(credentials,request)
     end
 
   end
