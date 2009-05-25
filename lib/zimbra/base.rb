@@ -9,6 +9,22 @@ require 'soap/mapping'
 
 require 'xml'
 
+class Hash
+  def stringify_keys!
+    keys.each do |key|
+      self[key.to_s] = delete(key)
+    end
+    self
+  end
+  
+  def stringify_keys
+    inject({}) do |options, (key, value)|
+      options
+    end
+  end
+end
+
+
 # Hack in order to set single headers to a soap call
 
 class SOAP::Header::HandlerSet
@@ -43,19 +59,133 @@ module Zimbra
         @meta_inf = META_INF.values.find { |i| "Zimbra::" + i[:class_name] == self.class.to_s }
         raises NoMetaInfFound unless @meta_inf
         @attributes ||= {}
-        attrs.each do |key,value|
-          # If we are setting the value of a container
-          if @meta_inf[:containers].has_value?(key.to_s)
-            raise ArrayExpectedError if value.class != Array
-            aux = self.send(key.to_s)
-            aux ||= []
-            value.each {|item| aux << item }
-            self.send(key.to_s+"=",aux)
+        @saved = false
+        self.attribut=(attrs)
+      end
+
+
+      def saved?
+        return @saved
+      end
+      # Now we define an attributes method to work better with rails, this allow the use of multiparameter attributes
+      def attribut=(new_attributes, guard_protected_attributes = true)
+
+        return if new_attributes.nil?
+        
+        attributes = new_attributes.dup
+        attributes.stringify_keys!
+
+        multi_parameter_attributes = []
+        #attributes = remove_attributes_protected_from_mass_assignment(attributes) if guard_protected_attributes
+        
+        attributes.each do |k, v|
+
+          if k.include?("(")
+            multi_parameter_attributes << [ k, v ]
           else
-            self.send(key.to_s + "=", value)
+            # If we are setting the value of a container
+            if @meta_inf[:containers].has_value?(k.to_s)
+              raise ArrayExpectedError if v.class != Array
+              aux = self.send(k.to_s)
+              aux ||= []
+              v.each {|item| aux << item }
+              self.send(k.to_s+"=",aux)
+            else
+              self.send(k.to_s + "=", v)
+            end
           end
         end
+        assign_multiparameter_attributes(multi_parameter_attributes)
       end
+
+
+      # Instantiates objects for all attribute classes that needs more than one constructor parameter. This is done
+      # by calling new on the column type or aggregation type (through composed_of) object with these parameters.
+      # So having the pairs written_on(1) = "2004", written_on(2) = "6", written_on(3) = "24", will instantiate
+      # written_on (a date type) with Date.new("2004", "6", "24"). You can also specify a typecast character in the
+      # parentheses to have the parameters typecasted before they're used in the constructor. Use i for Fixnum, f for Float,
+      # s for String, and a for Array. If all the values for a given attribute are empty, the attribute will be set to nil.
+      def assign_multiparameter_attributes(pairs)
+        execute_callstack_for_multiparameter_attributes(
+          extract_callstack_for_multiparameter_attributes(pairs)
+        )
+      end
+
+      def column_for_attribute(name)
+        return DateTime if name== "date"
+      end
+
+      def instantiate_time_object(name, values)
+        if self.class.send(:create_time_zone_conversion_attribute?, name, column_for_attribute(name))
+          Time.zone.local(*values)
+        else
+          Time.time_with_datetime_fallback(@@default_timezone, *values)
+        end
+      end
+
+      def execute_callstack_for_multiparameter_attributes(callstack)
+        errors = []
+        callstack.each do |name, values|
+          klass = Date if name == "date"
+          if values.empty?
+            send(name + "=", nil)
+          else
+            begin
+              value = if Time == klass
+                instantiate_time_object(name, values)
+              elsif Date == klass
+                begin
+                  Date.new(*values)
+                rescue ArgumentError => ex # if Date.new raises an exception on an invalid date
+                  instantiate_time_object(name, values).to_date # we instantiate Time object and convert it back to a date thus using Time's logic in handling invalid dates
+                end
+              else
+                klass.new(*values)
+              end
+
+              send(name + "=", value)
+            rescue => ex
+              errors << AttributeAssignmentError.new("error on assignment #{values.inspect} to #{name}", ex, name)
+            end
+          end
+        end
+        unless errors.empty?
+          raise MultiparameterAssignmentErrors.new(errors), "#{errors.size} error(s) on assignment of multiparameter attributes"
+        end
+      end
+
+      def extract_callstack_for_multiparameter_attributes(pairs)
+        attributes = { }
+        
+        for pair in pairs
+          multiparameter_name, value = pair
+          attribute_name = multiparameter_name.split("(").first
+          attributes[attribute_name] = [] unless attributes.include?(attribute_name)
+          
+          unless value.empty?
+            attributes[attribute_name] <<
+              [ find_parameter_position(multiparameter_name), type_cast_attribute_value(multiparameter_name, value) ]
+          end
+        end
+        
+        attributes.each { |name, values| attributes[name] = values.sort_by{ |v| v.first }.collect { |v| v.last } }
+      end
+      
+      def type_cast_attribute_value(multiparameter_name, value)
+        multiparameter_name =~ /\([0-9]*([a-z])\)/ ? value.send("to_" + $1) : value
+      end
+      
+      def find_parameter_position(multiparameter_name)
+        multiparameter_name.scan(/\(([0-9]*).*\)/).first.first
+      end
+      
+      # Returns a comma-separated pair list, like "key1 = val1, key2 = val2".
+      def comma_pair_list(hash)
+        hash.inject([]) { |list, pair| list << "#{pair.first} = #{pair.last}" }.join(", ")
+      end
+
+      
+
 
       def to_soap
 

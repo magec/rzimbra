@@ -3,6 +3,7 @@ module Zimbra
 
     self.type = "appointment"
 
+    
 
   end
 end

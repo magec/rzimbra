@@ -1,6 +1,8 @@
 module Zimbra
   class CalendarItem < MailItem
 
+    attr_accessor :atendees,:subject
+
     class << self
       attr_accessor :type
     end
@@ -21,53 +23,26 @@ module Zimbra
       return @attributes[:all_day] == "1"
     end
 
-    def create
-
-      request = SOAP::SOAPElement.new(request_method)
-      mail = SOAP::SOAPElement.new("m")
-
-      invitation = SOAP::SOAPElement.new("inv")
-      mail.add(SOAP::SOAPElement.new("su",subject))
-
-      component = SOAP::SOAPElement.new("comp")
-      component.extraattr["name"] = subject if subject
-#      component.extraattr["d"] = Time.parse(attrs[:start_time].str_date).to_i.to_s
-#      addresses.each do |address|
-#        mail.add(address.to_soap)
-#      end if addresses
-      component.add(start_time.to_soap)
-
-      if end_time
-        end_time = end_time.to_soap
-        end_time.elename = SOAP::SOAPElement.new("e").elename
-        component.add(end_time)
-      end
-
-      if content
-
-        mp = SOAP::SOAPElement.new("mp")
-        mp.extraattr["ct"] = "multipart/alternative"
-        mp2 = SOAP::SOAPElement.new("mp")
-        mp2.extraattr["ct"] = "text/plain"
-        mp2.add(SOAP::SOAPElement.new("content",content))
-        mp.add mp2
-        mail.add mp
-
-      end
-
-      component.add(organizer.to_soap)
-      component.extraattr["fba"] = "F"
-      atendees.each do |atendee|
-        component.add(atendee.to_soap)
-      end if atendees
-
-      component.add(duration.to_soap) if duration
-      invitation.add(component)
-      mail.add(invitation)
-      request.add(mail)
-      request.extraattr["xmlns"] = "urn:zimbraMail"
-      result = driver.CreateAppointmentRequest(credentials,request)
-      return result.first || true if result && result.first
+    def save
+      return if self.saved?
+      
+      component = Zimbra::InvitationComponent.new(:status => "TENT",:fba => "F",:percent_complete => "0",
+                                                  :start_time =>  Zimbra::ZimbraTime.new(self.date),
+                                                  :duration => self.duration,
+                                                  :organizer => self.organizer,
+                                                  :atendees => self.atendees.map{|i| Zimbra::Atendee.new(:address => i,:display_name => i,
+                                                                                                         :role => "REQ",:participation_status => "TE")})
+      # The invitation is composes as many invitation components
+      
+      invitation = Zimbra::Invitation.new(:components => [component] )
+      
+      # The invitation is wrapped up into a message
+      
+      @message = Zimbra::Message.new(:invitation => invitation,
+                                     :addresses => self.atendees.map{|i| Zimbra::Address.new(:address => i,:display_name => i,:type_address =>"to")},
+                                     :subject => self.subject )
+      
+      return self.class.create(@credentials,@message)
       
     end
 
