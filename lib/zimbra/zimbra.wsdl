@@ -38,7 +38,9 @@
     <schema targetNamespace="urn:zimbraAdmin" xmlns="http://www.w3.org/2001/XMLSchema">    
 
       <element name="a" type="xsd:string">
-	<attribute name="n" type="xsd:string" />
+	<complexType>
+	  <attribute name="n" type="xsd:string" />
+	</complexType>
       </element>
       
       <element name="AuthRequest">
@@ -72,9 +74,9 @@
       </element>
 
       <element name="account">
-	<attribute name="name" type="xsd:string" />
-	<attribute name="id=" type="xsd:string" />
 	<complexType>
+	  <attribute name="name" type="xsd:string" />
+	  <attribute name="id=" type="xsd:string" />
 	  <sequence>
 	    <element ref="tns:a" />
 	  </sequence>
@@ -94,8 +96,8 @@
       </complexType>
 
       <element name="GetAccountRequest">
-	<attribute name="applyCos" type="xsd:string" />
 	<complexType>
+	  <attribute name="applyCos" type="xsd:string" />
 	  <sequence>
 	    <element name="account" type="tns:account_request_type" />
 	  </sequence>
@@ -382,7 +384,7 @@
 	  <attribute name="name" type="xsd:string" />
 	  <attribute name="id" type="xsd:string" />
 	  <sequence>
-	    <elemenr name="dlm" type="xsd:string" />
+	    <element name="dlm" type="xsd:string" />
 	    <element ref="tns:a" />
 	  </sequence>
 	</complexType>
