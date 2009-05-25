@@ -6,7 +6,7 @@ module Zimbra
     end
 
     def destroy!
-      @driver.CancelTaskRequest(self.credentials,self.id)
+      @@driver.CancelTaskRequest(self.credentials,:xmlattr_id => self.calendar_item_id,:xmlattr_comp => self.invitation_id.split("-")[1])
     end
 
     def created_at
@@ -68,7 +68,7 @@ module Zimbra
       request.extraattr["xmlns"] = "urn:zimbraMail"
       result = driver.CreateAppointmentRequest(credentials,request)
       return result.first || true if result && result.first
-
+      
     end
 
     # Creates a new appointment
@@ -87,14 +87,15 @@ module Zimbra
 
       request_method = "CreateTaskRequest"
 
-      if self.class == Appointment
+      if self.inspect == "Zimbra::Appointment"
         request_method = "CreateAppointmentRequest"
       end
       request = SOAP::SOAPElement.new(request_method)
-
+      
       request.extraattr["xmlns"] = "urn:zimbraMail"
       request.add(message.to_soap)
       result = driver.CreateAppointmentRequest(credentials,request)
+      return self.new(:calendar_item_id => result[:calItemId],:invitation_id => result[:invId],:credentials => credentials)
     end
 
   end
