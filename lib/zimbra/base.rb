@@ -84,14 +84,13 @@ module Zimbra
           return @attributes[method_name]
         end
 
-
         # Assignment
         if method_name.to_s[-1] == 61 && @attributes.has_key?(method_name.to_s[0..-2])
           return @attributes[method_name.to_s[0..-2].to_sym] = args[0]
         end
 
         # If the attribute is not set
-        if self.class::ATTR_MAPPING.has_value?(method_name.to_s)
+        if @meta_inf[:attributes].has_value?(method_name.to_s)
           return nil
         end
 
@@ -146,7 +145,7 @@ module Zimbra
       :class_name => "InvitationComponent",
       :element_name => "comp",
       :attributes => {:status => "status",:fb => "f",:fba => "fba",:transp => "transp",:class  => "type ",
-        :allDay => "all_day",:name => "name",:loc => "location",:isOrg => "is_org",
+        :allDay => "all_day",:name => "name",:loc => "location",:isOrg => "is_org",:t => "t",
         :seq  => "seq ",:priority => "priority",:percentComplete => "percent_complete",:completed => "completed",:url => "url"},
       :elements => {:s => "start_time",:dur => "duration",:or => "organizer"},:containers => {:at => "atendees"}
     },
@@ -154,9 +153,9 @@ module Zimbra
       :parent => CalendarItem,
       :class_name => "Appointment",
       :element_name => "appt",
-      :attributes => {:alarm => "alarm", :loc => "loc", :transp => "transparency", :fb => "fb", :id => "appointment_id", :rev => "rev", :fba => "fba", :isOrg => ":is_org",:t => "t",
+      :attributes => {:alarm => "alarm", :loc => "loc", :transp => "transparency", :fb => "fb", :id => "calendar_item_id", :rev => "rev", :fba => "fba", :isOrg => ":is_org",:t => "t",
         :allDay => "all_day", :score => "score", :compNum => "compNum", :name => "name", :s => "s", :d => "date", :ms => "ms", :md => "md", :class => "class_name", :uid => "uid", :otherAtt => "other_attendees",
-        :ptst => "ptst", :cm => "cm", :status => "status", :l => "l", :dur => "duration", :sf => "sf", :f => "f", :x_uid => "x_uid", :invId => "invId"},
+        :ptst => "ptst", :cm => "cm", :status => "status", :l => "l", :dur => "duration", :sf => "sf", :f => "f", :x_uid => "x_uid", :invId => "invitation_id"},
       :elements => {:or => "organizer",:fr => "default_fragment" },
       :containers => {:inst => "instances"}
     },
@@ -164,9 +163,9 @@ module Zimbra
       :parent => CalendarItem,
       :class_name => "Task",
       :element_name => "task",
-      :attributes => {:alarm => "alarm", :loc => "loc", :transp => "transparency", :fb => "fb", :id => "appointment_id", :rev => "rev", :fba => "fba", :isOrg => ":is_org",:t => "t",
+      :attributes => {:alarm => "alarm", :loc => "loc", :transp => "transparency", :fb => "fb", :id => "calendar_item_id", :rev => "rev", :fba => "fba", :isOrg => ":is_org",:t => "t",
         :allDay => "all_day", :score => "score", :compNum => "compNum", :name => "name", :s => "s", :d => "date", :ms => "ms", :md => "md", :class => "class_name", :uid => "uid", :otherAtt => "other_attendees",
-        :ptst => "ptst", :cm => "cm", :status => "status", :l => "l", :dur => "duration", :sf => "sf", :f => "f", :x_uid => "x_uid", :invId => "invId"},
+        :ptst => "ptst", :cm => "cm", :status => "status", :l => "l", :dur => "duration", :sf => "sf", :f => "f", :x_uid => "x_uid", :invId => "invitation_id"},
       :elements => {:or => "organizer",:fr => "default_fragment" },
       :containers => {:inst => "instances"}
     },
@@ -364,13 +363,15 @@ module Zimbra
           credentials = args.shift
           @driver.headerhandler.set(ClientAuthHeaderHandler.new(credentials))
           xml_response = XML::Document.string(@driver.send(method_name.to_s,*args))
-          result =  xml_response.find("/soap:Envelope/soap:Body/*/*").map do |element|
+          result_array = xml_response.find("/soap:Envelope/soap:Body/*/*")
+          result =  result_array.map do |element|
             current_object = eval(META_INF[element.name.to_sym][:class_name]).from_xml(element)
             current_object.credentials = credentials
             current_object
           end
+          
           if result.length == 0
-            return [xml_response]
+            return xml_response.find("/soap:Envelope/soap:Body/*")[0]
           else
             return result
           end
