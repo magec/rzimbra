@@ -4,7 +4,7 @@ require 'test/unit'
 require 'rzimbra'
 require 'config/load_config'
 
-class TestMessage < Test::Unit::TestCase
+class TestInvitation < Test::Unit::TestCase
 
   def setup
     @message_id = "1"

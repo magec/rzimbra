@@ -7,6 +7,10 @@ require 'test_folder'
 require 'test_conversation'
 require 'test_soap'
 require 'test_account'
+require 'test_invitation'
+require 'test_object_marshalling'
+require 'test_distribution_list'
+require 'test_calendar'
 
 class TestZimbra
   def self.suite
@@ -16,6 +20,10 @@ class TestZimbra
     suite << TestFolder.suite
     suite << TestConversation.suite
     suite << TestAccount.suite
+    suite << TestCalendar.suite
+    suite << TestDistributionList.suite
+    suite << TestObjectMarshalling.suite
+    suite << TestInvitation.suite
     return suite
   end
 end

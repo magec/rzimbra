@@ -45,7 +45,7 @@ class TestSoap < Test::Unit::TestCase
   def test_get_messages
     assert(@client.SearchRequest(@credentials,:query => "in:inbox").length != 0)
     assert_raise(SOAP::FaultError) { @client.SearchRequest(@credentials,:query => "")}
-    assert (@client.SearchRequest(@credentials,:query => "in").length == 0),"This query should return 0 results"
+    assert_raise(NoMethodError){ @client.SearchRequest(@credentials,:query => "in").length  }
   end
 
   def test_login

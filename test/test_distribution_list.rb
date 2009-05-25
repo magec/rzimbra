@@ -4,7 +4,7 @@ require 'test/unit'
 require 'rzimbra'
 require 'config/load_config'
 
-class TestAccount < Test::Unit::TestCase
+class TestDistributionList < Test::Unit::TestCase
   
   TEST_PASSWORD = APP_CONFIG["test_password"]
   TEST_NAME     = APP_CONFIG["test_login"]

@@ -4,7 +4,7 @@ require 'test/unit'
 require 'rzimbra'
 require 'config/load_config'
 
-class TestMessage < Test::Unit::TestCase
+class TestCalendar < Test::Unit::TestCase
 
   TEST_ADDRESS =APP_CONFIG["admin_login"]
 
@@ -13,55 +13,6 @@ class TestMessage < Test::Unit::TestCase
     @credentials = Zimbra::Base.get_credentials(APP_CONFIG["admin_login"],APP_CONFIG["admin_password"])
   end
 
-=begin
-  de f test_create_appointment
-
-
-    @appointment = Zimbra::Appointment.create(@credentials,:addresses => [Zimbra::Address.new(:address => "jose@magec.es",:type => "t")],:subject => "Hola",
-                                              :start_time => Zimbra::ZimbraTime.new(Time.now+100),:duration => Zimbra::Duration.new(:days => "1"),
-                                               :organizer => Zimbra::Organizer.new(:address => "admin@magec.es",:display_name => "juan"),
-                                              :atendees => [Zimbra::Atendee.new(:address => "jose@magec.es",:display_name => "juan",:role => "REQ",:participation_status =>"TE" )])
-     assert_not_nil @appointment, "Error, Appointment cannot be created"
-  end
-
-
- <eateTaskRequest xmlns="urn:zimbraMail">
-<m xmlns="" l="15">
-<inv>
-   <comp priority="5" status="NEED" percentmplete="0" allDay="1" name="HOLA ESTO ES E SSUBJE" loc="">
-     <s d="20090520"/>
-     <e d="20090520"/>
-     <or a="admin@magec.es" d="Admin A. Admin"/>
-   </comp>
-   <tz id="(GMT-03.00) Auto-Detected" stdoff="-180"/>
-</inv>
-  <su>HOLA ESTO ES E SSUBJE</su>
-  <mp ct="multipart/alternative">
-    <mp ct="text/plain"><content>ESTO N O</content></mp>
-    <mp ct="text/html"><content>&lt;html&gt;&lt;body&gt;ESTO N O&lt;/body&gt;&lt;/html&gt;</content></mp>
-  </mp>
-</m>
-</eateTaskRequest>
-
-   <eateTaskRequest xmlns="urn:zimbraMail">
-      <m>
-        <content>THIS IS A TEST</content>
-        <inv>
-          <su>Hola</su>
-          <comp fba="F">
-            <s d="20090523T000000Z"></s>
-            <e d="20090526T000000Z"></e>
-            <or d="juan"
-                a="admin@magec.es"></or>
-            <at role="REQ"
-                d="juan"
-                a="jose@magec.es"
-                ptst="TE"></at>
-          </comp>
-        </inv>
-      </m>
-    </eateTaskRequest>
-=end
 
   def test_asignation
     @appointment = Zimbra::Appointment.new
@@ -71,12 +22,12 @@ class TestMessage < Test::Unit::TestCase
     end
   end
 
-  def test_appointment_creation
-
+  def setup_component
     # First a component has to be made
-
+    
     component = Zimbra::InvitationComponent.new(:status => "TENT",:fba => "F",:percent_complete => "0",
-                                                :start_time =>  Zimbra::ZimbraTime.new(Time.parse("20090523")),:duration => Zimbra::Duration.new(:m =>"10"),
+                                                :start_time =>  Zimbra::ZimbraTime.new(Time.parse("20090523")),
+                                                :duration => Zimbra::Duration.new(:mins =>"10"),
                                                 :organizer => Zimbra::Organizer.new(:address => TEST_ADDRESS,:display_name => "TEST"),
                                                 :atendees => [Zimbra::Atendee.new(:address => TEST_ADDRESS,:display_name => "TEST2",
                                                                                   :role => "REQ",:participation_status => "TE")])
@@ -87,25 +38,40 @@ class TestMessage < Test::Unit::TestCase
     # The invitation is wrapped up into a message
 
     address = Zimbra::Address.new(:address => @address,:display_name => @display_name)
-    appointment_message = Zimbra::Message.new(:invitation => invitation,
-                                              :addresses => [Zimbra::Address.new(:address => TEST_ADDRESS,:display_name => "Pepe")],
+    @message = Zimbra::Message.new(:invitation => invitation,
+                                              :addresses => [Zimbra::Address.new(:address => TEST_ADDRESS,:display_name => "Pepe",:type_address => "to")],
                                               :subject => "This is a test" )
 
-    puts appointment_message.to_soap.inspect
 
-    appointment = Zimbra::Appointment.create(@credentials,appointment_message)
 
-  end
-=begin
-  def test_task_creation
-
-   @appointment = Zimbra::Task.create(@credentials,:subject => "Hola",
-                                              :start_time => Zimbra::ZimbraTime.new(Time.parse("20090523")),
-                                              :end_time => Zimbra::ZimbraTime.new(Time.parse("20090526")),
-                                              :content => "THIS IS A TEST",
-                                              :organizer => Zimbra::Organizer.new(:address => "admin@magec.es",:display_name => "juan"))
-    assert_not_nil @appointment, "Error, Appointment cannot be created"
 
   end
-=end
+
+  def test_appointment_creation_and_deletion
+    
+    setup_component
+
+    appointment = Zimbra::Appointment.create(@credentials,@message)
+    assert_not_nil appointment, "Error, the appointment was not created"
+    assert_kind_of Zimbra::Appointment, appointment, "Error, class mismatches"
+    assert_not_nil appointment.destroy!
+  end
+
+  
+  def test_task_creation_and_deletion
+    setup_component
+    task = Zimbra::Task.create(@credentials,@message)
+    assert_not_nil task, "Error, the task was not created"
+    assert_kind_of Zimbra::Task, task, "Error, class mismatches"
+    assert_not_nil task.destroy!
+  end
+
+  def test_find_appointment
+    my_date = Time.parse("20000101")
+    @appointments = Zimbra::Appointment.find_all_by_query(@credentials,"appt-start:>=#{my_date.strftime('%Y%m%d')}",
+                                                          :calExpandInstStart => @my_date,
+                                                          :calExpandInstEnd => @my_date)
+    @appointments.each{|i| puts i.destroy!}
+  end
+
 end
