@@ -13,10 +13,6 @@ module Zimbra
     # Number of seconds
     #attr_accessor :secs
 
-    def initialize(attrs)
-      @attributes ||= {}
-      @attributes = attrs
-    end
   end
 
   class ZimbraTime <Base
@@ -29,7 +25,6 @@ module Zimbra
       super()
       @attributes ||= {}
       @attributes[:date] = start_time.strftime("%Y%m%dT%H%M%SZ")
-      puts @attributes[:date]
     end
 
     def date=(current_date)
