@@ -12,6 +12,10 @@ class TestObjectMarshalling < Test::Unit::TestCase
     @object = Zimbra::Message.new(:message_id => @message_id,:subject => @subject)
   end
 
+  def test_inspect
+    assert_not_nil @object.inspect,"Can't inspect, shy object detected"
+  end
+
   def test_wrong_attributes
     assert_raises NoMethodError  do
       Zimbra::Appointment.new(:foo => "bar")
