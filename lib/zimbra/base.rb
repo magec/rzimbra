@@ -185,7 +185,14 @@ module Zimbra
       end
 
       
-
+      def inspect
+        aux = @meta_inf[:class_name] + ":" + self.object_id.to_s + "\n"
+        [:attributes,:elements,:containers].each do |i|
+          aux += "\t" +i.to_s + "\n"
+          @meta_inf[i].each {|k,v| aux += "\t\t#{v} = " + self.send(v).inspect + "\n" }
+        end
+        aux
+      end
 
       def to_soap
 
@@ -238,24 +245,32 @@ module Zimbra
     module ClassMethods
       def from_xml(xml)
         object = self.new
+        
         xml.attributes.each do |attribute|
 #          object.send(self::ATTR_MAPPING[attribute.name.to_sym] + "=",attribute.value)
 #          puts attribute.to_s
           attributes = object.send("attributes")
-          raise "Attribute: " + attribute.name + " does not have any mapping" unless self::ATTR_MAPPING[attribute.name.to_sym]
+          raise "Attribute: " + attribute.name + " does not have any mapping (for class #{object.class.to_s})" unless self::ATTR_MAPPING[attribute.name.to_sym]
           attributes ||= {}
           attributes[self::ATTR_MAPPING[attribute.name.to_sym].to_sym] = attribute.value
           object.send("attributes=",attributes)
         end
         xml.children.each do |child|
           object.value = child.to_s if child.text?
+
           if method_name = self::CONTAINER_MAPPING[child.name.to_sym]
             container = object.send(method_name) || []
             container << eval(META_INF[child.name.to_sym][:class_name]).from_xml(child)
             object.send(method_name + "=",container)
           end
           if method_name = self::ELEMENT_MAPPING[child.name.to_sym]
-            object.send(method_name + "=",child.children.first.to_s)
+            if META_INF[child.name.to_sym]
+              current_element =  eval(META_INF[child.name.to_sym][:class_name]).from_xml(child)
+            else
+              current_element = child.children.first.to_s
+              puts "WARNING: #{current_element} was set" if $DEBUG
+            end
+            object.send(method_name + "=",current_element)
           end
         end
         object
@@ -276,7 +291,7 @@ module Zimbra
       :element_name => "comp",
       :attributes => {:status => "status",:fb => "f",:fba => "fba",:transp => "transp",:class  => "type ",
         :allDay => "all_day",:name => "name",:loc => "location",:isOrg => "is_org",:t => "t",
-        :seq  => "seq ",:priority => "priority",:percentComplete => "percent_complete",:completed => "completed",:url => "url"},
+        :seq  => "seq ",:priority => "priority",:percentComplete => "percent_complete",:completed => "completed",:url => "url" ,:d => "date",:uid => "uid",:apptId => "appointment_id",:calItemId => "calendar_item_id",:compNum => "comp_num",:rsvp => "rsvp",:x_uid => "x_uid"},
       :elements => {:s => "start_time",:dur => "duration",:or => "organizer"},:containers => {:at => "atendees"}
     },
     :appt => {
@@ -354,7 +369,7 @@ module Zimbra
       :class_name => "Message",
       :element_name => "m",
       :attributes => {:id => "message_id",:d => "date",:sf => "sort_field",:score => "score",:t => "t", :sd => "sd", :f => "f",:cm => "cm",:l => "parent_id",:cid => "cid",:s =>"s",:rev => "rev",:idnt => "idnt"},
-      :elements => {:su => "subject",:fr => "fragment",:inv => "invitation"},:containers => {:e => "addresses",:mp => "parts"}
+      :elements => {:su => "subject",:fr => "fragment",:inv => "invitation" },:containers => {:e => "addresses",:mp => "parts"}
     },
     :a => {
       :parent => Base,
@@ -382,7 +397,7 @@ module Zimbra
       :parent => Base,
       :class_name => "Invitation",
       :element_name => "inv",
-      :attributes => {:uid => "uid" },
+      :attributes => {:uid => "uid",:type => "invitation_type" },
       :elements => {},:containers => {:comp => "components"}
     },
     :s => {
@@ -403,7 +418,7 @@ module Zimbra
       :parent => Base,
       :class_name => "Organizer",
       :element_name => "or",
-      :attributes => { :a => "address",:d => "display_name",:sentBy => "sent_by",:dir => "dir",:lang => "language"},
+      :attributes => { :a => "address",:d => "display_name",:sentBy => "sent_by",:dir => "dir",:lang => "language" ,:url => "url"},
       :elements => {},:containers => {}
     },
     :at => {
@@ -411,7 +426,7 @@ module Zimbra
       :class_name => "Atendee",
       :element_name => "at",
       :attributes => { :a => "address",:d => "display_name",:sentBy => "sent_by",:dir => "dir",:lang => "language",:role => "role",:ptst => "participation_status",
-        :rsvp => "rsvp",:cutype => "cutype",:member => "member",:delTo => "delegated_to",:delFrom => "delegated_from"},
+        :rsvp => "rsvp",:cutype => "cutype",:member => "member",:delTo => "delegated_to",:delFrom => "delegated_from",:url => "url"},
       :elements => {},:containers => {}
     }
 
