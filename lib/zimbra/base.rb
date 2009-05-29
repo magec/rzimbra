@@ -61,6 +61,7 @@ module Zimbra
         @attributes ||= {}
         @saved = false
         self.attribut=(attrs)
+        @meta_inf[:containers].each {|k,v| self.send(v + "=",[])}
       end
 
 
@@ -207,7 +208,7 @@ module Zimbra
           if aux.respond_to?("to_soap")
             current_element.add(aux.to_soap)
           else
-            current_element.add(SOAP::SOAPElement.new(key.to_s,aux) )
+            current_element.add(SOAP::SOAPElement.new(key.to_s,aux) ) if aux
           end
         end
         # The the containers
@@ -268,7 +269,7 @@ module Zimbra
               current_element =  eval(META_INF[child.name.to_sym][:class_name]).from_xml(child)
             else
               current_element = child.children.first.to_s
-              puts "WARNING: #{current_element} was set" if $DEBUG
+#              puts "WARNING: #{current_element} was set" if $DEBUG
             end
             object.send(method_name + "=",current_element)
           end
@@ -376,6 +377,13 @@ module Zimbra
       :class_name => "AccountAttribute",
       :element_name => "a",
       :attributes => {:n => "key"},
+      :elements => {},:containers => {}
+    },
+    :action => {
+      :parent => Base,
+      :class_name => "Action",
+      :element_name => "action",
+      :attributes => {:id => "action_id", :op => "op",:tag => "tag",:l => "l",:f  => "f",:t=>"t",:color => "color" },
       :elements => {},:containers => {}
     },
     :account => {

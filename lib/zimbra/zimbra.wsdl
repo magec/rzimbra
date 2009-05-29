@@ -429,7 +429,47 @@
 	</complexType>
       </element>
 
+      <element name="SendMsgRequest" >
+	<complexType>
+	  <attribute name="suid" type="xsd:string" />
+	  <attribute name="needCalendarSentByFixup" type="xsd:string" />
+	  <attribute name="noSave" type="xsd:string" />
+	  <sequence>
+            <element ref="zmns:m" />
+	  </sequence>
+	</complexType>
+      </element>
+
+      <element name="SendMsgResponse">
+	<element ref="zmns:m" />
+      </element>
 	
+      <complexType name="action">
+	<attribute name="id" type="xsd:string" />
+	<attribute name="op" type="xsd:string" />
+	<attribute name="tag" type="xsd:string" />
+	<attribute name="l" type="xsd:string" />
+	<attribute name="f" type="xsd:string" />
+	<attribute name="t" type="xsd:string" />
+	<attribute name="color" type="xsd:string" />	  	
+      </complexType>
+
+      <element name="MsgActionRequest">
+	<complexType>
+	  <sequence>
+	    <element name="action" type="zmns:action" />
+	  </sequence>
+	</complexType>
+      </element>
+
+      <element name="MsgActionResponse">
+	<complexType>
+	  <sequence>
+	    <element name="action" type="zmns:action" />
+	  </sequence>
+	</complexType>
+      </element>
+
     </schema>
   </types>
   
@@ -540,6 +580,22 @@
   <message name="CancelTaskResponse">
     <part name="CancelTaskResponse" element="zmns:CancelTaskResponse" />
   </message>
+
+  <message name="SendMsgRequest">
+    <part name="SendMsgRequest" element="zmns:SendMsgRequest" />
+  </message>
+
+  <message name="SendMsgResponse">
+    <part name="SendMsgResponse" element="zmns:SendMsgResponse" />
+  </message>
+
+  <message name="MsgActionResponse">
+    <part name="MsgActionResponse" element="zmns:MsgActionResponse" />
+  </message>
+
+  <message name="MsgActionRequest">
+    <part name="MsgActionRequest" element="zmns:MsgActionRequest" />
+  </message>
   
   <portType name="ZimbraPort">
     <operation name="AuthRequest">
@@ -605,6 +661,16 @@
     <operation name="CancelAppointmentRequest" >
       <input message="tns:CancelAppointmentRequest" />
       <output message="tns:CancelAppointmentResponse" />
+    </operation>
+
+    <operation name="SendMsgRequest" >
+      <input message="tns:SendMsgRequest" />
+      <output message="tns:SendMsgResponse" />
+    </operation>
+
+    <operation name="MsgActionRequest" >
+      <input message="tns:MsgActionRequest" />
+      <output message="tns:MsgActionResponse" />
     </operation>
 
   </portType>
@@ -742,6 +808,27 @@
         <soap:body use="literal"/>
       </output>
     </operation>
+
+    <operation name="SendMsgRequest">
+       <soap:operation soapAction="/service/admin/soap/SendMsgRequest" />
+      <input>
+	<soap:body use="literal"/>
+      </input>
+      <output>
+        <soap:body use="literal"/>
+      </output>
+    </operation>
+
+    <operation name="MsgActionRequest">
+      <soap:operation soapAction="/service/admin/soap/MsgActionRequest" />
+      <input>
+	<soap:body use="literal"/>
+      </input>
+      <output>
+	<soap:body use="literal"/>
+      </output>
+    </operation>
+
 	
   </binding>
   

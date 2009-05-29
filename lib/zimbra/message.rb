@@ -33,5 +33,47 @@ module Zimbra
       parts[0].parts.find { |i| i.body == "1" }.content if parts && parts[0] && parts[0].parts
     end
 
+    def simple_mail(from,to,subject,message)
+      self.subject = subject
+      self.addresses << Zimbra::Address.new(:address => from, :type_address => "f")
+      self.addresses << Zimbra::Address.new(:address => to, :type_address => "t")
+      mp = MimePart.new(:part => "TEXT",:content_type => "text/plain")
+      mp.content = message
+      self.parts << mp
+    end
+    
+
+    def delete
+      request_method = "MsgActionRequest"
+      request = SOAP::SOAPElement.new(request_method)      
+      request.extraattr["xmlns"] = "urn:zimbraMail"
+      request.add(Zimbra::Action.new(:op => "delete",:action_id => self.message_id).to_soap)
+      @@driver.MsgActionRequest(@credentials,request)
+      
+    end
+    
+    def send_message(attrs = {})
+      request = prepare_request("SendMsgRequest")
+      request.extraattr["noSave"] = ( !attrs[:save] ? "1" : "0" ) if attrs[:save]
+      result = @@driver.SendMsgRequest(@credentials,request)
+      return self.message_id = result.first.message_id 
+    end
+
+    def self.create(credentials,attributes)
+      message = Message.new(attributes)
+      message.credentials = credentials
+      message.send_message
+    end
+
+
+    private
+    
+    def prepare_request(request_name)
+      request = SOAP::SOAPElement.new(request_name)      
+      request.extraattr["xmlns"] = "urn:zimbraMail"
+      request.add(to_soap)
+      return request
+    end
+
   end
 end
