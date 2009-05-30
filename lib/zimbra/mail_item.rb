@@ -9,6 +9,10 @@ module Zimbra
       return self.flags =~ /u/
     end
 
+    def date_rb
+      return Time.at(self.date.to_f/1000)
+    end
+
     #
     # This method queries the server for the given objects 
     # it accepts a search_options hash to change the search behavior 
@@ -57,7 +61,8 @@ module Zimbra
       result = {}
       search_options.each{|key,value| result[("xmlattr_"+key.to_s).to_sym] = value }
       result[:query] = query
-      return driver.SearchRequest(credentials,result.merge({:xmlattr_fetch => "all",:xmlattr_types => self.type}))
+      result = driver.SearchRequest(credentials,result.merge({:xmlattr_fetch => "all",:xmlattr_types => self.type}))
+      return ( result.respond_to?("length") )? result : [] 
     end
 
     def self.find_by_query(credentials,query,search_options = {})
@@ -68,12 +73,10 @@ module Zimbra
     def self.method_missing(method_name, *args)
       if method_name.to_s =~ /^find_by_(\w+)/
         credentials = args.shift
-        puts $1+":"+args[0]
         return self.find_by_query(credentials,$1+":"+args[0])
       end
       if method_name.to_s =~ /^find_all_by_(\w+)/
         credentials = args.shift
-        puts $1+":"+args[0]
         return self.find_all_by_query(credentials,$1+":"+args[0])
       end
     end
