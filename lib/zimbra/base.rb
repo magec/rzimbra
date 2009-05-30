@@ -61,7 +61,7 @@ module Zimbra
         @attributes ||= {}
         @saved = false
         self.attribut=(attrs)
-        @meta_inf[:containers].each {|k,v| self.send(v + "=",[])}
+        @meta_inf[:containers].each {|k,v| self.send(v + "=", attrs[v.to_sym] || []  )}
       end
 
 
