@@ -25,9 +25,6 @@ module Zimbra
       return false
     end
 
-    def date_rb
-      return Time.at(@attributes["date"].to_f/1000)
-    end
 
     def body
       parts[0].parts.find { |i| i.body == "1" }.content if parts && parts[0] && parts[0].parts
