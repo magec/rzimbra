@@ -113,6 +113,7 @@
       </element>
 
       <element name="DeleteAccountResponse" type="xsd:string" />
+
       <element name="DeleteAccountRequest">
 	<complexType>
 	  <sequence>
@@ -279,7 +280,6 @@
 	</complexType>
       </element>
 
-
       <element name="m">
 	<complexType>
 	  <sequence>
@@ -441,7 +441,11 @@
       </element>
 
       <element name="SendMsgResponse">
-	<element ref="zmns:m" />
+	<complexType>
+	  <sequence>
+	    <element ref="zmns:m" />
+	  </sequence>
+	</complexType>
       </element>
 	
       <complexType name="action">
