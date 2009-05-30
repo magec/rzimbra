@@ -71,7 +71,8 @@ class TestCalendar < Test::Unit::TestCase
     @appointments = Zimbra::Appointment.find_all_by_query(@credentials,"appt-start:>=#{my_date.strftime('%Y%m%d')}",
                                                           :calExpandInstStart => @my_date,
                                                           :calExpandInstEnd => @my_date)
-    @appointments.each{|i| puts i.destroy!}
+
+    @appointments.each{|i| i.destroy! if i.organizer.address == APP_CONFIG["admin_login"] }
   end
 
 end
