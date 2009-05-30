@@ -66,4 +66,11 @@ END
   end
 
 
+  def test_empty_result
+    result =  Zimbra::Conversation.find_all_by_query(@credentials,"to:undefined")
+    assert_equal result.length,0, "Error, an empty array was not obtained"
+  end
+
+
+
 end
