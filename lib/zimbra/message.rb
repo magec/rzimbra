@@ -15,11 +15,11 @@ module Zimbra
     def from_hr
       current = ""
       result = self.addresses.map do |i|
-        i.personal_name ? i.personal_name + " " + "<" + i.address + ">" : i.address if i.attributes[:type] == "f"
+        i.personal_name ? i.personal_name + " " + "<" + i.address + ">" : i.address if i.type_address == "f"
       end.compact.join ","
       result
     end
-
+    
     def isFlagged
       puts "WARNING:UNINPLEMENTED isFlagged"
       return false
@@ -62,6 +62,54 @@ module Zimbra
       message.send_message
     end
 
+    # some helpers methods to easy the pain of setting fields
+
+    def display_addresses_by_type(type)
+      aux = self.addresses.select {|i| i.type_address == type}
+      return ( aux ? aux.map{|i| i.address if i }.join(",") : nil )
+    end
+
+    def set_addresses(address_type,address_string)
+      current_addresses = self.addresses.select {|i| i.type_address == address_type}
+      self.addresses = self.addresses - current_addresses
+      address_string.split(",").each{|i| self.addresses <<  Zimbra::Address.new(:address => i, :type_address => address_type ) }
+    end
+
+    def from 
+      display_addresses_by_type "f"
+    end
+
+    def from=(from)
+      set_addresses("f",from)
+    end
+  
+    def to
+      display_addresses_by_type "t"
+    end
+
+    def to=(to)
+      set_addresses("t",to)
+    end
+
+    def cc
+      display_addresses_by_type "cc"
+    end
+    
+    def cc=(cc)
+      set_addresses("cc",cc) if cc
+    end
+    
+    def body
+      body_object = self.parts.find{|i| i.body == "1" }
+      return body_object.content if body_object
+    end
+
+    def body=(body)
+      self.parts = self.parts - self.parts.select{|i| i.body == "1"} if self.parts
+      mp = MimePart.new(:part => "TEXT",:content_type => "text/plain",:body => "1")
+      mp.content = body
+      self.parts << mp
+    end
 
     private
     

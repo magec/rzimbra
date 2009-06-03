@@ -10,14 +10,14 @@ require 'soap/mapping'
 require 'xml'
 
 class Hash
-  def stringify_keys!
+  def my_stringify_keys!
     keys.each do |key|
       self[key.to_s] = delete(key)
     end
     self
   end
   
-  def stringify_keys
+  def my_stringify_keys
     inject({}) do |options, (key, value)|
       options
     end
@@ -60,8 +60,8 @@ module Zimbra
         raises NoMetaInfFound unless @meta_inf
         @attributes ||= {}
         @saved = false
-        self.attribut=(attrs)
         @meta_inf[:containers].each {|k,v| self.send(v + "=", attrs[v.to_sym] || []  )}
+        self.attribut=(attrs)
       end
 
 
@@ -74,7 +74,7 @@ module Zimbra
         return if new_attributes.nil?
         
         attributes = new_attributes.dup
-        attributes.stringify_keys!
+        attributes.my_stringify_keys!
 
         multi_parameter_attributes = []
         #attributes = remove_attributes_protected_from_mass_assignment(attributes) if guard_protected_attributes
@@ -84,8 +84,9 @@ module Zimbra
           if k.include?("(")
             multi_parameter_attributes << [ k, v ]
           else
+		self.send(k.to_s + "=", v)
             # If we are setting the value of a container
-            if @meta_inf[:containers].has_value?(k.to_s)
+=begin            if @meta_inf[:containers].has_value?(k.to_s)
               raise ArrayExpectedError if v.class != Array
               aux = self.send(k.to_s)
               aux ||= []
@@ -94,6 +95,7 @@ module Zimbra
             else
               self.send(k.to_s + "=", v)
             end
+=end
           end
         end
         assign_multiparameter_attributes(multi_parameter_attributes)
@@ -136,7 +138,7 @@ module Zimbra
                 instantiate_time_object(name, values)
               elsif Date == klass
                 begin
-                  Date.new(*values)
+                  DateTime.new(*values)
                 rescue ArgumentError => ex # if Date.new raises an exception on an invalid date
                   instantiate_time_object(name, values).to_date # we instantiate Time object and convert it back to a date thus using Time's logic in handling invalid dates
                 end
@@ -355,7 +357,7 @@ module Zimbra
       :class_name => "Conversation",
       :element_name => "c",
       :attributes => {:id=> "conv_id",:t=> "tags",:n=> "num_msgs",:total=> "all_msgs",:score => "score",:d=> "date",:f=> "flags",:sf=>"sort_field"},
-      :elements => {:su => "subject",:fr => "fragment"},
+      :elements => {:su => "subject",:fr => "fragment",:inv => "invitation"},
       :containers => {:e => "addresses",:m => "mails"}
     },
     :e => {
@@ -522,11 +524,19 @@ module Zimbra
             current_object.credentials = credentials
             current_object
           end
-          
-          if result.length == 0
-            return xml_response.find("/soap:Envelope/soap:Body/*")[0]
+          # We have a big deal in here
+          # Sometimes the response is empty, sometimes not
+          wrap_element = xml_response.find("/soap:Envelope/soap:Body/*")[0]
+          if result.length == 0 
+            return wrap_element
           else
-            return result
+            if wrap_element.attributes.length > 0
+              wrap_result = wrap_element.attributes.to_h
+              wrap_result[:result] = result
+              return wrap_result
+            else
+              return result
+            end
           end
         end
         #TODO: The session has to be refreshed sometimes

@@ -5,6 +5,11 @@ module Zimbra
       attr_accessor :type
     end
 
+    def invite?
+      return self.flags =~ /v/
+    end
+
+
     def unread?
       return self.flags =~ /u/
     end
@@ -61,13 +66,19 @@ module Zimbra
       result = {}
       search_options.each{|key,value| result[("xmlattr_"+key.to_s).to_sym] = value }
       result[:query] = query
-      result = driver.SearchRequest(credentials,result.merge({:xmlattr_fetch => "all",:xmlattr_types => self.type}))
+      result = driver.SearchRequest(credentials,result.merge({:xmlattr_fetch => "all",:xmlattr_types => self.type}))[:result]
       return ( result.respond_to?("length") )? result : [] 
     end
 
     def self.find_by_query(credentials,query,search_options = {})
       result = self.find_all_by_query(credentials,query,search_options)
       return result[0] if result && result.length > 0
+    end
+
+    def self.find(credentials,token)
+      case token
+        when :all : find_all_by_query(credentials,"is:anywhere or is:sent")
+      end
     end
 
     def self.method_missing(method_name, *args)

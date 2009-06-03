@@ -41,7 +41,7 @@ Invitees: "Admin A. Admin" &lt;admin@magec.es>
 </desc><or d="Jose L. Fernandez" a="jose@magec.es" url="jose@magec.es"/><s d="20090506T090000" tz="(GMT+01.00) Amsterdam / Berlin / Bern / Rome / Stockholm / Vienna"/><e d="20090506T093000" tz="(GMT+01.00) Amsterdam / Berlin / Bern / Rome / Stockholm / Vienna"/></comp></inv><mp part="TEXT" s="3243" ct="multipart/alternative"><mp part="1" body="1" s="304" ct="text/plain"><content>The following is a new meeting request:
 
 Subject: Hola 
-Organizer: "Jose L. Fernandez" &lt;jose@magec.es> 
+Organizer: "Jose L. Fernandez" &lt;jose@magec.es> "
 
 Time: Wednesday, May 6, 2009, 9:00:00 AM - 9:30:00 AM GMT +01:00 Amsterdam / Berlin / Bern / Rome / Stockholm / Vienna
  
@@ -72,5 +72,44 @@ END
   end
 
 
+  def test_send_message_by_to_cc_and_subject
+    subject = "THIS IS A TEST#{rand}"
+    message = Zimbra::Message.new
+    message.to = APP_CONFIG["admin_login"]
+    message.cc = APP_CONFIG["admin_login"]
+    message.body = "THIS IS A TEST"
+    message.subject = subject
+    message.credentials = @credentials
+    message.send_message(:save => true)
+    assert_not_nil message =  Zimbra::Message.find_by_subject(@credentials,subject), "Error, a message with the sent subject was expected"   
+    message.delete
+  end
+
+  def test_set_with_special_fields
+    subject = "THIS IS A TEST#{rand}"
+    body = "THIS IS A TEST"
+    body2 = "THIS IS ANOTHER TEST"
+    message = Zimbra::Message.new
+    message.to = APP_CONFIG["admin_login"] + "," + APP_CONFIG["admin_login"]
+    message.cc = APP_CONFIG["admin_login"] + "," + APP_CONFIG["admin_login"]   
+    message.body = body
+    assert_equal message.addresses.select{|i| i.type_address == "t" }.length, 2, "Error, two (to) addresses expected"
+    assert_equal message.addresses.select{|i| i.type_address == "cc" }.length, 2, "Error, two (cc) addresses expected"
+    message.subject = subject
+    assert_not_nil message.parts, "Error, there should be 1 part (the body)"
+    assert_equal message.parts.length , 1 ,  "Error, there should be 1 part (the body)"
+    assert_equal message.parts[0].content, body, "Error, the body mismatches"
+    message.credentials = @credentials
+    message.body = body2
+    assert_equal message.body , body2, "Error, the body did not changed"
+    message.send_message(:save => true)
+    assert_not_nil message =  Zimbra::Message.find_by_subject(@credentials,subject), "Error, a message with the sent subject was expected"   
+    message.delete    
+  end
+
+  def test_find_with_token
+    messages = Zimbra::Message.find(@credentials,:all)
+    assert_not_nil messages, "Error, cant get every message"
+  end
 
 end

@@ -31,6 +31,7 @@ class TestCalendar < Test::Unit::TestCase
                                                 :organizer => Zimbra::Organizer.new(:address => TEST_ADDRESS,:display_name => "TEST"),
                                                 :atendees => [Zimbra::Atendee.new(:address => TEST_ADDRESS,:display_name => "TEST2",
                                                                                   :role => "REQ",:participation_status => "TE")])
+
     # The invitation is composes as many invitation components
 
     invitation = Zimbra::Invitation.new(:components => [component] )
@@ -50,7 +51,6 @@ class TestCalendar < Test::Unit::TestCase
   def test_appointment_creation_and_deletion
     
     setup_component
-
     appointment = Zimbra::Appointment.create(@credentials,@message)
     assert_not_nil appointment, "Error, the appointment was not created"
     assert_kind_of Zimbra::Appointment, appointment, "Error, class mismatches"
@@ -71,7 +71,6 @@ class TestCalendar < Test::Unit::TestCase
     @appointments = Zimbra::Appointment.find_all_by_query(@credentials,"appt-start:>=#{my_date.strftime('%Y%m%d')}",
                                                           :calExpandInstStart => @my_date,
                                                           :calExpandInstEnd => @my_date)
-
     @appointments.each{|i| i.destroy! if i.organizer.address == APP_CONFIG["admin_login"] }
   end
 

@@ -16,7 +16,8 @@ module Zimbra
     end
 
     def start_time
-      return Time.at(@instances.first.start_time_secs.to_f/1000)
+      time = Time.at(@instances.first.start_time_secs.to_f/1000)
+      return time.utc
     end
 
     def all_day?
@@ -28,20 +29,20 @@ module Zimbra
       
       component = Zimbra::InvitationComponent.new(:status => "TENT",:fba => "F",:percent_complete => "0",
                                                   :start_time =>  Zimbra::ZimbraTime.new(self.date),
-                                                  :duration => self.duration,
-                                                  :organizer => self.organizer,
-                                                  :atendees => self.atendees.map{|i| Zimbra::Atendee.new(:address => i,:display_name => i,
-                                                                                                         :role => "REQ",:participation_status => "TE")})
+                                                  :name => self.subject,
+                                                  :duration => Zimbra::Duration.new(:hours => self.duration),
+                                                  :organizer => self.organizer)
+      component.atendees = atendees if atendees
+
       # The invitation is composes as many invitation components
       
-      invitation = Zimbra::Invitation.new(:components => [component] )
+      invitation = Zimbra::Invitation.new(:components => [component])
       
       # The invitation is wrapped up into a message
       
       @message = Zimbra::Message.new(:invitation => invitation,
-                                     :addresses => self.atendees.map{|i| Zimbra::Address.new(:address => i,:display_name => i,:type_address =>"to")},
                                      :subject => self.subject )
-      
+      @message.addresses =  self.atendees.map{|i| Zimbra::Address.new(:address => i.address,:display_name => i.display_name,:type_address =>"t")} if atendees
       return self.class.create(@credentials,@message)
       
     end
