@@ -41,11 +41,12 @@ end
 class NoAttributeError < Exception;end
 class ArrayExpectedError < Exception;end
 class NoMetaInfFound < Exception;end
+class NoCredentialsFound < Exception; end
 
 module Zimbra
 
   class Base;
-    attr_accessor :value
+    attr_accessor :value,:attributes
   end
 
   class MailItem < Base; end
@@ -60,7 +61,11 @@ module Zimbra
         raises NoMetaInfFound unless @meta_inf
         @attributes ||= {}
         @saved = false
-        @meta_inf[:containers].each {|k,v| self.send(v + "=", attrs[v.to_sym] || []  )}
+        @meta_inf[:containers].each do |k,v| 
+          aux = attrs[v.to_sym] 
+          raise ArrayExpectedError if aux && aux.class != Array 
+          self.send(v + "=", aux || [])
+        end
         self.attribut=(attrs)
       end
 
@@ -246,9 +251,9 @@ module Zimbra
     end
 
     module ClassMethods
-      def from_xml(xml)
+      def from_xml(xml,credentials = nil)
         object = self.new
-        
+        object.credentials = credentials
         xml.attributes.each do |attribute|
 #          object.send(self::ATTR_MAPPING[attribute.name.to_sym] + "=",attribute.value)
 #          puts attribute.to_s
@@ -263,12 +268,12 @@ module Zimbra
 
           if method_name = self::CONTAINER_MAPPING[child.name.to_sym]
             container = object.send(method_name) || []
-            container << eval(META_INF[child.name.to_sym][:class_name]).from_xml(child)
+            container << eval(META_INF[child.name.to_sym][:class_name]).from_xml(child,credentials)
             object.send(method_name + "=",container)
           end
           if method_name = self::ELEMENT_MAPPING[child.name.to_sym]
             if META_INF[child.name.to_sym]
-              current_element =  eval(META_INF[child.name.to_sym][:class_name]).from_xml(child)
+              current_element =  eval(META_INF[child.name.to_sym][:class_name]).from_xml(child,credentials)
             else
               current_element = child.children.first.to_s
 #              puts "WARNING: #{current_element} was set" if $DEBUG
@@ -301,7 +306,7 @@ module Zimbra
       :parent => CalendarItem,
       :class_name => "Appointment",
       :element_name => "appt",
-      :attributes => {:alarm => "alarm", :loc => "loc", :transp => "transparency", :fb => "fb", :id => "calendar_item_id", :rev => "rev", :fba => "fba", :isOrg => ":is_org",:t => "t",
+      :attributes => {:alarm => "alarm", :loc => "loc", :transp => "transparency", :fb => "fb", :id => "calendar_item_id", :rev => "rev", :fba => "fba", :isOrg => "is_org",:t => "t",
         :allDay => "all_day", :score => "score", :compNum => "compNum", :name => "name", :s => "s", :d => "date", :ms => "ms", :md => "md", :class => "class_name", :uid => "uid", :otherAtt => "other_attendees",
         :ptst => "ptst", :cm => "cm", :status => "status", :l => "l", :dur => "duration", :sf => "sf", :f => "f", :x_uid => "x_uid", :invId => "invitation_id"},
       :elements => {:or => "organizer",:fr => "default_fragment" },
@@ -371,7 +376,7 @@ module Zimbra
       :parent => MailItem,
       :class_name => "Message",
       :element_name => "m",
-      :attributes => {:id => "message_id",:d => "date",:sf => "sort_field",:score => "score",:t => "t", :sd => "sd", :f => "f",:cm => "cm",:l => "parent_id",:cid => "cid",:s =>"s",:rev => "rev",:idnt => "idnt"},
+      :attributes => {:id => "message_id",:d => "date",:sf => "sort_field",:score => "score",:t => "t", :sd => "start_date", :f => "f",:cm => "cm",:l => "parent_id",:cid => "cid",:s =>"s",:rev => "rev",:idnt => "idnt"},
       :elements => {:su => "subject",:fr => "fragment",:inv => "invitation" },:containers => {:e => "addresses",:mp => "parts"}
     },
     :a => {
@@ -407,7 +412,7 @@ module Zimbra
       :parent => Base,
       :class_name => "Invitation",
       :element_name => "inv",
-      :attributes => {:uid => "uid",:type => "invitation_type" },
+      :attributes => {:uid => "uid",:type => "invitation_type" ,:compNum => "compNum"},
       :elements => {},:containers => {:comp => "components"}
     },
     :s => {
@@ -471,6 +476,7 @@ module Zimbra
     end
 
     def on_simple_outbound
+      raise NoCredentialsFound unless @credentials
       { "sessionId" => @credentials[:sessionId],"authToken" => @credentials[:authToken] }
     end
 
@@ -520,8 +526,7 @@ module Zimbra
           xml_response = XML::Document.string(@driver.send(method_name.to_s,*args))
           result_array = xml_response.find("/soap:Envelope/soap:Body/*/*")
           result =  result_array.map do |element|
-            current_object = eval(META_INF[element.name.to_sym][:class_name]).from_xml(element)
-            current_object.credentials = credentials
+            current_object = eval(META_INF[element.name.to_sym][:class_name]).from_xml(element,credentials)
             current_object
           end
           # We have a big deal in here

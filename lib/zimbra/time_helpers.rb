@@ -31,8 +31,12 @@ module Zimbra
         @attributes[:date] = current_date.strftime("%Y%m%dT%H%M%SZ")
     end
 
+
+    def date_rb
+      DateTime.parse(@attributes[:date])
+    end
     #def date
-    #  DateTime.parse(@attributes[:date])
+    # 
     #end
 
     def str_date

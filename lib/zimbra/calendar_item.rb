@@ -24,7 +24,43 @@ module Zimbra
       return @attributes[:all_day] == "1"
     end
 
+    def update!
+      message = self.message
+      message.subject = self.subject
+      message.body = invitation_message if invitation_message
+      message.date = self.date
+      self.message.invitation.components.first.start_time = Zimbra::ZimbraTime.new(self.date)
+#      puts message.inspect
+      request = SOAP::SOAPElement.new("ModifyAppointmentRequest")      
+      request.extraattr["xmlns"] = "urn:zimbraMail"
+      request.extraattr["id"] = self.invitation_id
+      request.add(message.to_soap)
+#      puts message.to_soap.inspect
+      result = @@driver.ModifyAppointmentRequest(@credentials,request)
+      return true
+    end
+
     def save
+      save_or_update(:save)
+    end
+
+    def date
+      @attributes[:date] || (self.message.invitation.components.first.start_time.date_rb if message)
+    end
+
+    def subject
+      @subject || ( self.message.subject if message )
+    end
+    
+
+    attr_accessor :invitation_message
+
+    def save_or_update(method_name)
+      
+      if self.invitation_id
+        return self.update!
+      end
+
       return if self.saved?
       
       component = Zimbra::InvitationComponent.new(:status => "TENT",:fba => "F",:percent_complete => "0",
@@ -40,12 +76,19 @@ module Zimbra
       
       # The invitation is wrapped up into a message
       
-      @message = Zimbra::Message.new(:invitation => invitation,
-                                     :subject => self.subject )
+      @message = Zimbra::Message.new(:invitation => invitation, :subject => self.subject )
+      @message.body = invitation_message if invitation_message
       @message.addresses =  self.atendees.map{|i| Zimbra::Address.new(:address => i.address,:display_name => i.display_name,:type_address =>"t")} if atendees
-      return self.class.create(@credentials,@message)
+
+      if method_name == :save
+        appointment =  self.class.create(@credentials,@message)
+      else
+        appointment = self.class.modify(@credentials,invitation_id,@message)
+      end
       
+      self.attribut=appointment.attributes if appointment
     end
+
 
     # Creates a new appointment
     #
@@ -71,7 +114,9 @@ module Zimbra
       request.extraattr["xmlns"] = "urn:zimbraMail"
       request.add(message.to_soap)
       result = driver.CreateAppointmentRequest(credentials,request)
-      return self.new(:calendar_item_id => result[:calItemId],:invitation_id => result[:invId],:credentials => credentials)
+      aux = self.new(:calendar_item_id => result["calItemId"],:invitation_id => result["invId"],:credentials => credentials)
+      aux.credentials = credentials
+      return aux
     end
 
   end

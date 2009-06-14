@@ -15,4 +15,4 @@ require 'zimbra/time_helpers'
 require 'zimbra/address'
 require 'zimbra/calendar_component'
 require 'zimbra/distribution_list'
-
+require 'zimbra/invitation'

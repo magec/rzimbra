@@ -348,6 +348,23 @@
 	</complexType>
       </element>
 
+      <element name="ModifyAppointmentRequest" >
+	<complexType>
+	  <attribute name="id" type="xsd:string" />
+	  <attribute name="comp" type="zsd:string" />
+	  <sequence>
+	    <element ref="zmns:m" />
+	  </sequence>
+	</complexType>
+      </element>
+
+      <element name="ModifyAppointmentResponse" >
+	<complexType>
+	  <attribute name="calItemId" type="xsd:string" />
+	  <attribute name="invId" type="xsd:string" />
+	</complexType>
+      </element>
+
       <element name="CancelAppointmentRequest" >
 	<complexType>
 	  <attribute name="id" type="xsd:string" />
@@ -474,6 +491,37 @@
 	</complexType>
       </element>
 
+      
+      <element name="SendInviteReplyRequest">
+	<complexType>
+	  <attribute name="verb" type="xsd:string" />
+	  <attribute name="id" type="xsd:string" />
+	  <attribute name="compNum" type="xsd:string" />
+	  <sequence>
+	    <element name="exceptId" type="zmns:s" />
+            <element ref="zmns:m" />
+	  </sequence>
+	</complexType>
+      </element>
+      
+      <element name="SendInviteReplyResponse">
+	<complexType>
+	  <attribute name="status" type="xsd:string" />
+	</complexType>
+      </element>
+
+      <element name="GetMsgRequest" >
+	<complexType>
+	  <element ref="zmns:m" />
+	</complexType>
+      </element>    
+
+      <element name="GetMsgResponse" >
+	<complexType>
+	  <element ref="zmns:m" />
+	</complexType>
+      </element>    
+
     </schema>
   </types>
   
@@ -561,6 +609,14 @@
     <part name="CreateAppointmentResponse" element="zmns:CreateAppointmentResponse" />
   </message>
 
+  <message name="ModifyAppointmentRequest">
+    <part name="ModifyAppointmentRequest" element="zmns:ModifyAppointmentRequest" />
+  </message>
+
+  <message name="ModifyAppointmentResponse">
+    <part name="ModifyAppointmentResponse" element="zmns:ModifyAppointmentResponse" />
+  </message>
+
   <message name="CancelAppointmentRequest">
     <part name="CancelAppointmentRequest" element="zmns:CancelAppointmentRequest" />
   </message>
@@ -599,6 +655,22 @@
 
   <message name="MsgActionRequest">
     <part name="MsgActionRequest" element="zmns:MsgActionRequest" />
+  </message>
+
+  <message name="SendInviteReplyRequest">
+    <part name="SendInviteReplyRequest" element="zmns:SendInviteReplyRequest" />
+  </message>
+
+  <message name="SendInviteReplyResponse">
+    <part name="SendInviteReplyResponse" element="zmns:SendInviteReplyResponse" />
+  </message>
+
+  <message name="GetMsgRequest">
+    <part name="GetMsgRequest" element="zmns:GetMsgRequest" />
+  </message>
+
+  <message name="GetMsgResponse">
+    <part name="GetMsgResponse" element="zmns:GetMsgResponse" />
   </message>
   
   <portType name="ZimbraPort">
@@ -647,6 +719,11 @@
       <output message="tns:CreateAppointmentResponse" />
     </operation>
 
+    <operation name="ModifyAppointmentRequest" >
+      <input message="tns:ModifyAppointmentRequest" />
+      <output message="tns:ModifyAppointmentResponse" />
+    </operation>
+
     <operation name="GetDistributionListRequest" >
       <input message="tns:GetDistributionListRequest" />
       <output message="tns:GetDistributionListResponse" />
@@ -677,6 +754,16 @@
       <output message="tns:MsgActionResponse" />
     </operation>
 
+    <operation name="SendInviteReplyRequest" >
+      <input message="tns:SendInviteReplyRequest" />
+      <output message="tns:SendInviteReplyResponse" />
+    </operation>
+
+    <operation name="GetMsgRequest" >
+      <input message="tns:GetMsgRequest" />
+      <output message="tns:GetMsgResponse" />
+    </operation>
+
   </portType>
   
   <binding name="ZimbraBinding" type="tns:ZimbraPort">
@@ -694,6 +781,16 @@
 
     <operation name="SearchRequest">
       <soap:operation soapAction="/service/admin/soap/SearchRequest"/>
+      <input>
+        <soap:body use="literal"/>
+      </input>
+      <output>
+        <soap:body use="literal"/>
+      </output>
+    </operation>
+
+    <operation name="GetMsgRequest">
+      <soap:operation soapAction="/service/admin/soap/GetMsgRequest"/>
       <input>
         <soap:body use="literal"/>
       </input>
@@ -803,6 +900,16 @@
       </output>
     </operation>
 
+    <operation name="ModifyAppointmentRequest">
+       <soap:operation soapAction="/service/admin/soap/ModifyAppointmentRequest" />
+      <input>
+	<soap:body use="literal"/>
+      </input>
+      <output>
+        <soap:body use="literal"/>
+      </output>
+    </operation>
+
     <operation name="CancelAppointmentRequest">
        <soap:operation soapAction="/service/admin/soap/CancelAppointmentRequest" />
       <input>
@@ -832,6 +939,16 @@
 	<soap:body use="literal"/>
       </output>
     </operation>
+    
+    <operation name="SendInviteReplyRequest">
+      <soap:operation soapAction="/service/admin/soap/SendInviteReplyRequest" />
+      <input>
+	<soap:body use="literal"/>
+      </input>
+      <output>
+	<soap:body use="literal"/>
+      </output>
+    </operation>    
 
 	
   </binding>

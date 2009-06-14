@@ -23,7 +23,7 @@ Organizer: "Jose L. Fernandez" &lt;jose@magec.es>
 Time: Wednesday, May 6, 2009, 9:00:00 AM - 9:30:00 AM GMT +01:00 Amsterdam / Berlin / Bern / Rome / Stockholm / Vienna
  
 Invitees: "Admin A. Admin" &lt;admin@magec.es> 
-
+"
 *~*~*~*~*~*~*~*~*~*
 
 </desc><or d="Jose L. Fernandez" a="jose@magec.es" url="jose@magec.es"/><s d="20090506T090000" tz="(GMT+01.00) Amsterdam / Berlin / Bern / Rome / Stockholm / Vienna"/><e d="20090506T093000" tz="(GMT+01.00) Amsterdam / Berlin / Bern / Rome / Stockholm / Vienna"/></comp></inv>
@@ -39,15 +39,17 @@ END
     @at_address = "test2@test.es"
     @display_name = "Foo, Bar."
 
-
+    
     component = Zimbra::InvitationComponent.new(:status => "TENT",:fba => "F",:percent_complete => "0",
                                                 :start_time => Time.now,:duration => "10m",
                                                 :organizer => Zimbra::Organizer.new(:address => @address,:display_name => "TEST"),
                                                 :atendees => [Zimbra::Atendee.new(:address => @at_adress,:display_name => "TEST2",
                                                                                   :role => "REQ",:participation_status => "TE")])
-
+    
 
     assert_not_nil invitation = Zimbra::Invitation.new(:components => [component]),"Error, creating the invitation"
 
   end
+
+
 end

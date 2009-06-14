@@ -40,13 +40,22 @@ module Zimbra
     end
     
 
+    def self.find_by_id(credentials,id)
+      request = SOAP::SOAPElement.new("GetMsgRequest")
+      m = SOAP::SOAPElement.new("m")
+      m.extraattr[:id] = id
+      request.extraattr["xmlns"] = "urn:zimbraMail"
+      request.add(m)
+      result = @@driver.GetMsgRequest(credentials,request)
+      return result[0] if result
+    end
+
     def delete
       request_method = "MsgActionRequest"
       request = SOAP::SOAPElement.new(request_method)      
       request.extraattr["xmlns"] = "urn:zimbraMail"
       request.add(Zimbra::Action.new(:op => "delete",:action_id => self.message_id).to_soap)
       @@driver.MsgActionRequest(@credentials,request)
-      
     end
     
     def send_message(attrs = {})
@@ -99,17 +108,45 @@ module Zimbra
       set_addresses("cc",cc) if cc
     end
     
+    def body_object
+      body_object = nil
+      self.parts.find do |i|
+        if i.body== "1"
+          body_object = i
+          break
+        else
+          i.parts.find do |j|
+            if j.body=="1"
+              body_object = j
+              break
+            end
+          end
+        end
+      end
+      body_object
+    end
+    
     def body
-      body_object = self.parts.find{|i| i.body == "1" }
       return body_object.content if body_object
     end
 
     def body=(body)
-      self.parts = self.parts - self.parts.select{|i| i.body == "1"} if self.parts
-      mp = MimePart.new(:part => "TEXT",:content_type => "text/plain",:body => "1")
-      mp.content = body
-      self.parts << mp
+      if body_object
+        body_object.content = body
+        return true
+      else
+        mp = MimePart.new(:part => "TEXT",:content_type => "text/plain",:body => "1")
+        mp.content = body
+        self.parts << mp
+      end
     end
+
+    def send_invitation_response(verb)
+      # ACCEPT, COMPLETED, DECLINE, DELEGATED, TENTATIVE
+      first_component = invitation.components.first
+      return @@driver.SendInviteReplyRequest(@credentials,:xmlattr_verb => verb,:xmlattr_compNum => first_component.comp_num,:xmlattr_id => message_id)
+    end
+
 
     private
     
