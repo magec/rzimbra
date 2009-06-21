@@ -25,6 +25,7 @@ module Zimbra
       return "DE" if part.find { |i| i== "DE" }
       return "TE" if part.find { |i| i== "TE" }
       return "AC" if part.find { |i| i== "AC" }
+      return attributes[:participation_status]
     end
 
     def invitation_message

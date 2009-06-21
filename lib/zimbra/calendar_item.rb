@@ -7,8 +7,25 @@ module Zimbra
       attr_accessor :type
     end
 
-    def destroy!
-      @@driver.CancelTaskRequest(self.credentials,:xmlattr_id => self.calendar_item_id,:xmlattr_comp => self.invitation_id.split("-")[1])
+    def message_for_request
+      message = self.message
+      message.subject = self.subject
+      message.body = invitation_message if invitation_message
+      message.date = self.date
+      return message
+    end
+
+    def destroy!(subject = "")
+      request = SOAP::SOAPElement.new("CancelAppointmentRequest")      
+      request.extraattr["xmlns"] = "urn:zimbraMail"
+      request.extraattr["id"] = self.invitation_id
+      request.extraattr["comp"] = 0#self.invitation_id.split("-")[1]
+      m = Message.new()
+      m.subject = subject
+      m.body = invitation_message if invitation_message
+      self.atendees.each { |i| m.addresses << (Address.new(:address => i.address,:type_address => "t"))}
+      request.add(m.to_soap) if invitation_message
+      @@driver.CancelAppointmentRequest(@credentials,request)
     end
 
     def created_at

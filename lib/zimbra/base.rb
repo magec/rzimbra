@@ -308,7 +308,7 @@ module Zimbra
       :element_name => "appt",
       :attributes => {:alarm => "alarm", :loc => "loc", :transp => "transparency", :fb => "fb", :id => "calendar_item_id", :rev => "rev", :fba => "fba", :isOrg => "is_org",:t => "t",
         :allDay => "all_day", :score => "score", :compNum => "compNum", :name => "name", :s => "s", :d => "date", :ms => "ms", :md => "md", :class => "class_name", :uid => "uid", :otherAtt => "other_attendees",
-        :ptst => "ptst", :cm => "cm", :status => "status", :l => "l", :dur => "duration", :sf => "sf", :f => "f", :x_uid => "x_uid", :invId => "invitation_id"},
+        :ptst => "participation_status", :cm => "cm", :status => "status", :l => "l", :dur => "duration", :sf => "sf", :f => "f", :x_uid => "x_uid", :invId => "invitation_id"},
       :elements => {:or => "organizer",:fr => "default_fragment" },
       :containers => {:inst => "instances"}
     },
