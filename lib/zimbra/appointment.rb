@@ -40,6 +40,22 @@ module Zimbra
     def atendees=(atendees)
         @atendees = atendees
     end
+    
+    def pp
+      puts "Appointment: #{uid}"
+      puts "Participation Status: #{participation_status}"
+      puts "Last Modification Date: #{Time.at(date.to_i/1000)}"
+      puts "Start Time: #{start_time}"
+      puts "Organizer: #{organizer.display_name}"
+      puts "People involved: #{atendees.map{|i| i.display_name + ' [' + i.participation_status + ']'}.join(',')}"
+      puts self.inspect
+    end
+    
+    def start_time
+      if instances && instances.length > 0
+        Time.at(instances[0].start_time_secs.to_i/1000)
+      end
+    end
 
   end
 end
