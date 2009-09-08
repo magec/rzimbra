@@ -24,11 +24,15 @@ module Zimbra
     def initialize(start_time = DateTime.now)
       super()
       @attributes ||= {}
-      @attributes[:date] = start_time.strftime("%Y%m%dT%H%M%SZ")
+      @attributes[:date] = start_time.strftime("%Y%m%dT%H%M%S")
+      @attributes[:timezone_identifier] = start_time.strftime("(GMT+01.00) Brussels / Copenhagen / Madrid / Paris")
+      puts start_time.utc
     end
 
     def date=(current_date)
-        @attributes[:date] = current_date.strftime("%Y%m%dT%H%M%SZ")
+      @attributes[:date] = current_date.strftime("%Y%m%dT%H%M%S")
+      @attributes[:timezone_identifier] = current_date.strftime("(GMT+01.00) Brussels / Copenhagen / Madrid / Paris")
+      puts current_date.utc
     end
 
 
