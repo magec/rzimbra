@@ -45,11 +45,7 @@ module Zimbra
       request.extraattr[:xmlns] = "urn:zimbraAdmin"
       request.extraattr[:applyCos] = "0"
       request.add account
-      begin
-        result = driver.GetAccountRequest(credentials,request)
-      rescue SOAP::FaultError => error
-        return nil
-      end
+      result = driver.GetAccountRequest(credentials,request)
       result
     end
     
